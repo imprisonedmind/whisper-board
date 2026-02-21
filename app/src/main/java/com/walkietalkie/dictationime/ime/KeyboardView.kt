@@ -1,6 +1,5 @@
 package com.walkietalkie.dictationime.ime
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Typeface
@@ -11,7 +10,6 @@ import android.view.Gravity
 import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -21,7 +19,7 @@ import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.res.ResourcesCompat
 import com.walkietalkie.dictationime.R
-import kotlin.random.Random
+import com.walkietalkie.dictationime.audio.AudioFeatures
 
 class KeyboardView @JvmOverloads constructor(
     context: Context,
@@ -125,15 +123,7 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     private val eraseRepeater = EraseRepeater()
-    private val intensityAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-        duration = 140L
-        repeatCount = ValueAnimator.INFINITE
-        repeatMode = ValueAnimator.RESTART
-        interpolator = AccelerateDecelerateInterpolator()
-        addUpdateListener {
-            waveformView.intensity = 0.5f + Random.nextFloat() * 0.9f
-        }
-    }
+    private var waveformMode = WaveformMode.Idle
 
     init {
         orientation = VERTICAL
@@ -203,7 +193,7 @@ class KeyboardView @JvmOverloads constructor(
                 )
                 statusText.text = context.getString(R.string.ime_tap_to_start)
                 statusText.setTextColor(colorTextMuted)
-                setWaveformState(visible = false, active = false, color = colorAccent)
+                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
 
             DictationState.Recording -> {
@@ -217,7 +207,7 @@ class KeyboardView @JvmOverloads constructor(
                 )
                 statusText.text = context.getString(R.string.ime_tap_to_stop)
                 statusText.setTextColor(colorRecording)
-                setWaveformState(visible = true, active = true, color = colorRecording)
+                setWaveformState(visible = true, active = true, color = colorRecording, mode = WaveformMode.Reactive)
             }
 
             DictationState.Transcribing -> {
@@ -231,7 +221,7 @@ class KeyboardView @JvmOverloads constructor(
                 )
                 statusText.text = context.getString(R.string.ime_transcribing)
                 statusText.setTextColor(colorTranscribing)
-                setWaveformState(visible = true, active = true, color = colorTranscribing)
+                setWaveformState(visible = true, active = true, color = colorTranscribing, mode = WaveformMode.Ambient)
             }
 
             is DictationState.Error -> {
@@ -245,7 +235,7 @@ class KeyboardView @JvmOverloads constructor(
                 )
                 statusText.text = errorToText(state.reason)
                 statusText.setTextColor(colorRecording)
-                setWaveformState(visible = false, active = false, color = colorAccent)
+                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
         }
     }
@@ -275,16 +265,27 @@ class KeyboardView @JvmOverloads constructor(
         micButton.alpha = if (enableMic) 1f else 0.75f
     }
 
-    private fun setWaveformState(visible: Boolean, active: Boolean, color: Int) {
+    fun updateWaveform(features: AudioFeatures) {
+        if (waveformMode != WaveformMode.Reactive) return
+        waveformView.setAudioFeatures(features.rms, features.zcr)
+    }
+
+    private fun setWaveformState(
+        visible: Boolean,
+        active: Boolean,
+        color: Int,
+        mode: WaveformMode
+    ) {
+        waveformMode = mode
         waveformView.waveColor = color
         waveformView.isActive = active
-
-        if (active && !intensityAnimator.isStarted) {
-            intensityAnimator.start()
+        if (visible) {
+            waveformView.ensureAnimating()
         }
-        if (!active && intensityAnimator.isStarted) {
-            intensityAnimator.cancel()
-            waveformView.intensity = 0.25f
+        when (mode) {
+            WaveformMode.Idle -> waveformView.setIdleMode()
+            WaveformMode.Reactive -> waveformView.setReactiveMode()
+            WaveformMode.Ambient -> waveformView.setAmbientMode()
         }
 
         if (visible) {
@@ -359,8 +360,13 @@ class KeyboardView @JvmOverloads constructor(
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
-        intensityAnimator.cancel()
         eraseRepeater.stop()
+    }
+
+    private enum class WaveformMode {
+        Idle,
+        Reactive,
+        Ambient
     }
 
     private inner class EraseRepeater {
