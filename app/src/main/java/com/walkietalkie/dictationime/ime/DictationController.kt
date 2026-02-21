@@ -20,7 +20,7 @@ class DictationController(
         onStateChanged(next)
     }
 
-    suspend fun startRecording(): Result<Unit> {
+    suspend fun startRecording(onAudioChunk: ((ShortArray) -> Unit)? = null): Result<Unit> {
         if (state != DictationState.Idle && state !is DictationState.Error) {
             return Result.failure(IllegalStateException("Cannot start in current state: $state"))
         }
@@ -35,7 +35,7 @@ class DictationController(
             return Result.failure(it)
         }
 
-        audioCapture.start().onFailure {
+        audioCapture.start(onAudioChunk).onFailure {
             setState(DictationState.Error(DictationError.AudioCaptureFailed))
             return Result.failure(it)
         }

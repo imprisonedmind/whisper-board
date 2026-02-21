@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.inputmethodservice.InputMethodService
+import android.os.SystemClock
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -12,6 +13,7 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import com.walkietalkie.dictationime.asr.WhisperApiRecognizer
 import com.walkietalkie.dictationime.audio.AndroidAudioCapture
+import com.walkietalkie.dictationime.audio.extractAudioFeatures
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
 import com.walkietalkie.dictationime.settings.MainActivity
@@ -32,6 +34,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private lateinit var dictationController: DictationController
     private var keyboardView: KeyboardView? = null
     private var pendingSend = false
+    private var lastAudioUpdateMs = 0L
 
     override fun onCreate() {
         super.onCreate()
@@ -67,7 +70,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             onMicTap = { handleMicTap() }
             onOpenSettings = { openSettingsScreen() }
             onEraseTap = { performErase() }
-            onBackToKeyboard = { switchBackToKeyboard() }
+            onSwitchKeyboard = { switchBackToKeyboard() }
             render(dictationController.state)
         }
         keyboardView = view
@@ -100,7 +103,10 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
                         return@launch
                     }
                     pendingSend = false
-                    dictationController.startRecording()
+                    lastAudioUpdateMs = 0L
+                    dictationController.startRecording { chunk ->
+                        handleAudioChunk(chunk)
+                    }
                 }
 
                 DictationState.Recording -> {
@@ -123,6 +129,17 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         launch {
             delay(1200)
             keyboardView?.render(DictationState.Idle)
+        }
+    }
+
+    private fun handleAudioChunk(chunk: ShortArray) {
+        if (dictationController.state != DictationState.Recording) return
+        val now = SystemClock.uptimeMillis()
+        if (now - lastAudioUpdateMs < 30L) return
+        lastAudioUpdateMs = now
+        val features = extractAudioFeatures(chunk)
+        keyboardView?.post {
+            keyboardView?.updateWaveform(features)
         }
     }
 

@@ -1,0 +1,29 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="85%"
+                android:centerX="45%"
+                android:centerY="30%"
+                android:startColor="@color/te_dial_light"
+                android:endColor="@color/te_dial_dark" />
+            <stroke android:width="2dp" android:color="@color/te_dial_stroke" />
+        </shape>
+    </item>
+    <item
+        android:insetLeft="8dp"
+        android:insetTop="8dp"
+        android:insetRight="8dp"
+        android:insetBottom="8dp">
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:gradientRadius="80%"
+                android:centerX="55%"
+                android:centerY="60%"
+                android:startColor="#2C2F2C"
+                android:endColor="#1F2120" />
+        </shape>
+    </item>
+</layer-list>

@@ -1,0 +1,24 @@
+<resources>
+    <dimen name="te_button_size">64dp</dimen>
+    <dimen name="te_button_padding">10dp</dimen>
+    <dimen name="te_button_radius">6dp</dimen>
+    <dimen name="te_button_bevel">4dp</dimen>
+    <dimen name="te_button_shadow">4dp</dimen>
+
+    <dimen name="te_panel_size">184dp</dimen>
+    <dimen name="te_panel_radius">12dp</dimen>
+    <dimen name="te_panel_inset">5dp</dimen>
+    <dimen name="te_panel_screw">10dp</dimen>
+
+    <dimen name="te_ring_size">132dp</dimen>
+    <dimen name="te_ring_stroke">8dp</dimen>
+    <dimen name="te_halo_size">170dp</dimen>
+
+    <dimen name="te_dial_size">114dp</dimen>
+    <dimen name="te_icon_size">46dp</dimen>
+
+    <dimen name="te_label_size">11sp</dimen>
+    <dimen name="te_label_gap">6dp</dimen>
+    <dimen name="te_column_gap">14dp</dimen>
+    <dimen name="te_row_gap">10dp</dimen>
+</resources>

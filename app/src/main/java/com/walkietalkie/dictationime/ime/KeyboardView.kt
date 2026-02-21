@@ -1,31 +1,25 @@
 package com.walkietalkie.dictationime.ime
 
-import android.animation.ObjectAnimator
-import android.animation.PropertyValuesHolder
 import android.content.Context
-import android.content.res.ColorStateList
-import android.graphics.RadialGradient
-import android.graphics.Shader
+import android.graphics.Color
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.RippleDrawable
-import android.graphics.drawable.ShapeDrawable
-import android.graphics.drawable.shapes.OvalShape
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
-import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
-import com.google.android.material.color.MaterialColors
+import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.content.res.ResourcesCompat
 import com.walkietalkie.dictationime.R
-import kotlin.math.min
+import com.walkietalkie.dictationime.audio.AudioFeatures
 
 class KeyboardView @JvmOverloads constructor(
     context: Context,
@@ -35,129 +29,137 @@ class KeyboardView @JvmOverloads constructor(
     var onMicTap: (() -> Unit)? = null
     var onOpenSettings: (() -> Unit)? = null
     var onEraseTap: (() -> Unit)? = null
-    var onBackToKeyboard: (() -> Unit)? = null
+    var onSwitchKeyboard: (() -> Unit)? = null
 
-    private val surfaceColor = MaterialColors.getColor(
-        this,
-        com.google.android.material.R.attr.colorSurface,
-        ContextCompat.getColor(context, R.color.surface)
-    )
-    private val surfaceVariantColor = MaterialColors.getColor(
-        this,
-        com.google.android.material.R.attr.colorSurfaceVariant,
-        ContextCompat.getColor(context, R.color.surface_alt)
-    )
-    private val onSurfaceColor = MaterialColors.getColor(
-        this,
-        com.google.android.material.R.attr.colorOnSurface,
-        ContextCompat.getColor(context, R.color.ink)
-    )
-    private val primaryColor = MaterialColors.getColor(
-        this,
-        com.google.android.material.R.attr.colorPrimary,
-        ContextCompat.getColor(context, R.color.accent)
-    )
-    private val onPrimaryColor = MaterialColors.getColor(
-        this,
-        com.google.android.material.R.attr.colorOnPrimary,
-        ContextCompat.getColor(context, R.color.on_primary)
-    )
-    private val primaryPressedColor = ContextCompat.getColor(context, R.color.accent_pressed)
-    private val rippleColor = MaterialColors.getColor(
-        this,
-        android.R.attr.colorControlHighlight,
-        onSurfaceColor
-    )
+    private val typeface = ResourcesCompat.getFont(context, R.font.space_grotesk) ?: Typeface.DEFAULT
 
-    private val topButtonSize = dp(40)
-    private val topButtonPadding = dp(10)
-    private val actionButtonSize = dp(88)
-    private val haloSize = dp(132)
+    private val colorSurface = Color.parseColor("#0A0F16")
+    private val colorPanel = Color.parseColor("#111824")
+    private val colorPanelAlt = Color.parseColor("#1B2636")
+    private val colorKeyBorder = Color.parseColor("#304158")
+    private val colorTextPrimary = Color.parseColor("#E8EEF7")
+    private val colorTextMuted = Color.parseColor("#92A0B7")
+    private val colorAccent = Color.parseColor("#24C4B3")
+    private val colorRecording = Color.parseColor("#F0555D")
+    private val colorTranscribing = Color.parseColor("#31C48D")
+
+    private val waveformView = WaveformView(context)
+
+    private val waveformContainer = FrameLayout(context).apply {
+        background = roundedRectDrawable(radiusDp = 12, fillColor = colorPanel, strokeColor = colorKeyBorder)
+        alpha = 0f
+        visibility = GONE
+        addView(waveformView, LayoutParams(LayoutParams.MATCH_PARENT, dp(78)).apply {
+            marginStart = dp(8)
+            marginEnd = dp(8)
+            topMargin = dp(6)
+            bottomMargin = dp(6)
+        })
+    }
 
     private val statusText = TextView(context).apply {
-        textSize = 13f
-        setTypeface(typeface, Typeface.BOLD)
-        setTextColor(onSurfaceColor)
+        typeface = this@KeyboardView.typeface
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f)
+        letterSpacing = 0.12f
+        setTextColor(colorTextMuted)
         gravity = Gravity.CENTER
-        text = ""
-        visibility = INVISIBLE
+        text = context.getString(R.string.ime_tap_to_start)
+        isAllCaps = true
     }
 
-    private val actionFill = GradientDrawable().apply {
-        shape = GradientDrawable.RECTANGLE
-        cornerRadius = (actionButtonSize / 2).toFloat()
-        setColor(primaryColor)
-    }
-
-    private val actionButton = AppCompatImageButton(context).apply {
-        background = RippleDrawable(ColorStateList.valueOf(rippleColor), actionFill, null)
-        setImageResource(android.R.drawable.ic_btn_speak_now)
-        imageTintList = ColorStateList.valueOf(onPrimaryColor)
-        imageAlpha = 255
-        scaleType = ImageView.ScaleType.CENTER_INSIDE
-        setPadding(dp(12), dp(12), dp(12), dp(12))
-        layoutParams = LayoutParams(actionButtonSize, actionButtonSize)
-        contentDescription = context.getString(R.string.ime_mic)
-        setOnClickListener { onMicTap?.invoke() }
-        elevation = dp(6).toFloat()
-    }
-
-    private var haloColor: Int = primaryColor
-    private val haloDrawable = ShapeDrawable(OvalShape()).apply {
-        paint.isDither = true
-        shaderFactory = object : ShapeDrawable.ShaderFactory() {
-            override fun resize(width: Int, height: Int): Shader {
-                val radius = min(width, height) * 0.5f
-                val inner = ColorUtils.setAlphaComponent(haloColor, 140)
-                val outer = ColorUtils.setAlphaComponent(haloColor, 0)
-                return RadialGradient(
-                    width * 0.5f,
-                    height * 0.5f,
-                    radius,
-                    intArrayOf(inner, outer),
-                    floatArrayOf(0f, 1f),
-                    Shader.TileMode.CLAMP
-                )
-            }
+    private val micRing = View(context).apply {
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(Color.TRANSPARENT)
+            setStroke(dp(2), Color.parseColor("#3A4E67"))
         }
     }
 
-    private val actionHalo = View(context).apply {
-        background = haloDrawable
-        alpha = 0f
-        visibility = INVISIBLE
-        elevation = 0f
-        isClickable = false
-        isFocusable = false
+    private val micIcon = AppCompatImageView(context).apply {
+        scaleType = ImageView.ScaleType.CENTER_INSIDE
+        setImageResource(R.drawable.ic_mic_te)
+        imageTintList = android.content.res.ColorStateList.valueOf(colorTextPrimary)
     }
 
-    private var haloAnimator: ObjectAnimator? = null
+    private val micButton = FrameLayout(context).apply {
+        background = GradientDrawable().apply {
+            shape = GradientDrawable.OVAL
+            setColor(colorPanelAlt)
+            setStroke(dp(2), Color.parseColor("#3C4F67"))
+        }
+        isClickable = true
+        isFocusable = true
+        contentDescription = context.getString(R.string.ime_mic)
+        setOnClickListener {
+            performTapHaptic()
+            onMicTap?.invoke()
+        }
+        addView(micIcon, FrameLayout.LayoutParams(dp(40), dp(40), Gravity.CENTER))
+    }
 
-    private val eraseRepeater = EraseRepeater()
-
-    private val backButton = makeIconButton(
-        iconRes = R.drawable.ic_back,
-        contentDescriptionRes = R.string.ime_back_to_keyboard,
-        fillColor = surfaceVariantColor,
-        iconTint = onSurfaceColor
-    ) { onBackToKeyboard?.invoke() }
-
-    private val settingsButton = makeIconButton(
+    private val settingsButton = createCircleIconButton(
         iconRes = R.drawable.ic_settings,
-        contentDescriptionRes = R.string.ime_open_settings,
-        fillColor = surfaceVariantColor,
-        iconTint = onSurfaceColor
+        contentDescription = context.getString(R.string.ime_open_settings)
     ) { onOpenSettings?.invoke() }
 
-    private val eraseButton = makeIconButton(
+    private val backspaceButton = createCircleIconButton(
         iconRes = R.drawable.ic_backspace,
-        contentDescriptionRes = R.string.ime_erase,
-        fillColor = surfaceVariantColor,
-        iconTint = onSurfaceColor
-    ) { onEraseTap?.invoke() }.apply {
-        setOnTouchListener { _, event ->
+        contentDescription = context.getString(R.string.ime_erase)
+    ) { onEraseTap?.invoke() }
+
+    private val keyboardSwitchButton = AppCompatButton(context).apply {
+        text = context.getString(R.string.ime_keyboard_mode)
+        typeface = this@KeyboardView.typeface
+        textSize = 11f
+        letterSpacing = 0.08f
+        isAllCaps = true
+        setTextColor(colorTextMuted)
+        background = roundedRectDrawable(radiusDp = 18, fillColor = colorPanel, strokeColor = colorKeyBorder)
+        setPadding(dp(16), dp(10), dp(16), dp(10))
+        setOnClickListener {
+            performTapHaptic()
+            onSwitchKeyboard?.invoke()
+        }
+    }
+
+    private val eraseRepeater = EraseRepeater()
+    private var waveformMode = WaveformMode.Idle
+
+    init {
+        orientation = VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+        setBackgroundColor(colorSurface)
+        setPadding(dp(12), dp(12), dp(12), dp(14))
+
+        addView(waveformContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
+
+        addView(statusText, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(12)
+            bottomMargin = dp(14)
+            gravity = Gravity.CENTER_HORIZONTAL
+        })
+
+        val controlsRow = LinearLayout(context).apply {
+            orientation = HORIZONTAL
+            gravity = Gravity.CENTER
+        }
+
+        val micStack = FrameLayout(context).apply {
+            addView(micRing, FrameLayout.LayoutParams(dp(104), dp(104), Gravity.CENTER))
+            addView(micButton, FrameLayout.LayoutParams(dp(88), dp(88), Gravity.CENTER))
+        }
+
+        controlsRow.addView(settingsButton, LayoutParams(dp(50), dp(50)))
+        controlsRow.addView(micStack, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            marginStart = dp(20)
+            marginEnd = dp(20)
+        })
+        controlsRow.addView(backspaceButton, LayoutParams(dp(50), dp(50)))
+
+        backspaceButton.setOnTouchListener { _, event ->
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
+                    performTapHaptic()
                     eraseRepeater.start()
                     true
                 }
@@ -168,194 +170,211 @@ class KeyboardView @JvmOverloads constructor(
                 else -> false
             }
         }
-    }
 
-    init {
-        orientation = VERTICAL
-        clipToPadding = false
-        clipChildren = false
-        setBackgroundColor(surfaceColor)
-        setPadding(dp(16), dp(18), dp(16), dp(32))
+        addView(controlsRow)
 
-        val topRow = LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            gravity = Gravity.CENTER_VERTICAL
-            addView(backButton)
-            addView(LinearLayout(context).apply {
-                layoutParams = LayoutParams(0, 0, 1f)
-            })
-            addView(settingsButton)
-            addView(eraseButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                marginStart = dp(10)
-            })
-        }
-
-        val actionContainer = FrameLayout(context).apply {
-            clipToPadding = false
-            clipChildren = false
-            addView(
-                actionHalo,
-                FrameLayout.LayoutParams(haloSize, haloSize, Gravity.CENTER)
-            )
-            addView(
-                actionButton,
-                FrameLayout.LayoutParams(actionButtonSize, actionButtonSize, Gravity.CENTER)
-            )
-            actionHalo.translationZ = 0f
-            actionButton.translationZ = dp(6).toFloat()
-        }
-
-        val centerRow = LinearLayout(context).apply {
-            orientation = VERTICAL
-            gravity = Gravity.CENTER
-            addView(actionContainer)
-            addView(statusText, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
-                topMargin = dp(10)
-            })
-        }
-
-        val centerContainer = LinearLayout(context).apply {
-            orientation = VERTICAL
-            gravity = Gravity.CENTER
-            clipToPadding = false
-            clipChildren = false
-            addView(centerRow)
-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, 0, 1f)
-        }
-
-        addView(
-            topRow,
-            LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
-                bottomMargin = dp(32)
-            }
-        )
-        addView(centerContainer)
+        addView(keyboardSwitchButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            gravity = Gravity.CENTER_HORIZONTAL
+            topMargin = dp(14)
+            bottomMargin = dp(14)
+        })
     }
 
     fun render(state: DictationState) {
         when (state) {
             DictationState.Idle -> {
-                actionButton.isEnabled = true
-                statusText.text = ""
-                statusText.visibility = INVISIBLE
-                actionFill.setColor(primaryColor)
-                actionButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-                actionButton.imageTintList = ColorStateList.valueOf(surfaceColor)
-                actionButton.contentDescription = context.getString(R.string.ime_mic)
-                stopHalo()
+                setMicAppearance(
+                    fillColor = colorPanelAlt,
+                    borderColor = Color.parseColor("#3C4F67"),
+                    ringColor = Color.parseColor("#39506B"),
+                    iconRes = R.drawable.ic_mic_te,
+                    iconTint = colorTextPrimary,
+                    enableMic = true
+                )
+                statusText.text = context.getString(R.string.ime_tap_to_start)
+                statusText.setTextColor(colorTextMuted)
+                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
 
             DictationState.Recording -> {
-                actionButton.isEnabled = true
-                statusText.text = context.getString(R.string.ime_recording)
-                statusText.visibility = VISIBLE
-                actionFill.setColor(primaryPressedColor)
-                actionButton.setImageResource(R.drawable.ic_send)
-                actionButton.imageTintList = ColorStateList.valueOf(surfaceColor)
-                actionButton.contentDescription = context.getString(R.string.ime_tap_to_send)
-                startHalo(durationMs = 1800L, color = primaryPressedColor, maxAlpha = 0.22f)
+                setMicAppearance(
+                    fillColor = Color.parseColor("#A1303A"),
+                    borderColor = Color.parseColor("#F46B72"),
+                    ringColor = Color.parseColor("#F46B72"),
+                    iconRes = R.drawable.ic_cancel_square,
+                    iconTint = Color.WHITE,
+                    enableMic = true
+                )
+                statusText.text = context.getString(R.string.ime_tap_to_stop)
+                statusText.setTextColor(colorRecording)
+                setWaveformState(visible = true, active = true, color = colorRecording, mode = WaveformMode.Reactive)
             }
 
             DictationState.Transcribing -> {
-                actionButton.isEnabled = false
-                statusText.text = context.getString(R.string.ime_transcribing_send)
-                statusText.visibility = VISIBLE
-                actionFill.setColor(surfaceVariantColor)
-                actionButton.setImageResource(R.drawable.ic_send)
-                actionButton.imageTintList = ColorStateList.valueOf(surfaceColor)
-                actionButton.contentDescription = context.getString(R.string.ime_transcribing_send)
-                startHalo(durationMs = 900L, color = primaryColor, maxAlpha = 0.18f)
+                setMicAppearance(
+                    fillColor = Color.parseColor("#1D684D"),
+                    borderColor = Color.parseColor("#46D89F"),
+                    ringColor = Color.parseColor("#46D89F"),
+                    iconRes = R.drawable.ic_waveform_te,
+                    iconTint = Color.WHITE,
+                    enableMic = false
+                )
+                statusText.text = context.getString(R.string.ime_transcribing)
+                statusText.setTextColor(colorTranscribing)
+                setWaveformState(visible = true, active = true, color = colorTranscribing, mode = WaveformMode.Ambient)
             }
 
             is DictationState.Error -> {
-                actionButton.isEnabled = true
-                actionFill.setColor(primaryColor)
-                actionButton.setImageResource(android.R.drawable.ic_btn_speak_now)
-                actionButton.imageTintList = ColorStateList.valueOf(onPrimaryColor)
-                actionButton.contentDescription = context.getString(R.string.ime_mic)
-                statusText.text = when (state.reason) {
-                    DictationError.PermissionDenied -> context.getString(R.string.ime_permission_denied)
-                    DictationError.ConfigurationMissing -> context.getString(R.string.ime_configuration_missing)
-                    DictationError.AudioCaptureFailed -> context.getString(R.string.ime_unknown_error)
-                    DictationError.TranscriptionFailed -> context.getString(R.string.ime_transcription_failed)
-                    DictationError.TooShort -> context.getString(R.string.ime_too_short)
-                    DictationError.NoSpeechDetected -> context.getString(R.string.ime_no_speech)
-                    DictationError.Unknown -> context.getString(R.string.ime_unknown_error)
-                }
-                statusText.visibility = VISIBLE
-                stopHalo()
+                setMicAppearance(
+                    fillColor = colorPanelAlt,
+                    borderColor = Color.parseColor("#3C4F67"),
+                    ringColor = Color.parseColor("#39506B"),
+                    iconRes = R.drawable.ic_mic_te,
+                    iconTint = colorTextPrimary,
+                    enableMic = true
+                )
+                statusText.text = errorToText(state.reason)
+                statusText.setTextColor(colorRecording)
+                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
         }
-
-        actionButton.alpha = if (actionButton.isEnabled) 1f else 0.6f
     }
 
-    private fun makeIconButton(
-        iconRes: Int,
-        contentDescriptionRes: Int,
+    private fun setMicAppearance(
         fillColor: Int,
+        borderColor: Int,
+        ringColor: Int,
+        iconRes: Int,
         iconTint: Int,
-        onClick: () -> Unit
-    ): AppCompatImageButton {
-        val shape = GradientDrawable().apply {
-            shape = GradientDrawable.OVAL
+        enableMic: Boolean
+    ) {
+        (micButton.background as? GradientDrawable)?.apply {
             setColor(fillColor)
+            setStroke(dp(2), borderColor)
+            invalidateSelf()
         }
 
-        return AppCompatImageButton(context).apply {
-            background = RippleDrawable(ColorStateList.valueOf(rippleColor), shape, null)
-            setImageResource(iconRes)
-            imageTintList = ColorStateList.valueOf(iconTint)
-            imageAlpha = 255
-            scaleType = ImageView.ScaleType.CENTER_INSIDE
-            setPadding(topButtonPadding, topButtonPadding, topButtonPadding, topButtonPadding)
-            layoutParams = LayoutParams(topButtonSize, topButtonSize)
-            contentDescription = context.getString(contentDescriptionRes)
-            setOnClickListener { onClick() }
+        (micRing.background as? GradientDrawable)?.apply {
+            setStroke(dp(2), ringColor)
+            invalidateSelf()
         }
+
+        micIcon.setImageResource(iconRes)
+        micIcon.imageTintList = android.content.res.ColorStateList.valueOf(iconTint)
+        micButton.isEnabled = enableMic
+        micButton.alpha = if (enableMic) 1f else 0.75f
+    }
+
+    fun updateWaveform(features: AudioFeatures) {
+        if (waveformMode != WaveformMode.Reactive) return
+        waveformView.setAudioFeatures(features.rms, features.zcr)
+    }
+
+    private fun setWaveformState(
+        visible: Boolean,
+        active: Boolean,
+        color: Int,
+        mode: WaveformMode
+    ) {
+        waveformMode = mode
+        waveformView.waveColor = color
+        waveformView.isActive = active
+        if (visible) {
+            waveformView.ensureAnimating()
+        }
+        when (mode) {
+            WaveformMode.Idle -> waveformView.setIdleMode()
+            WaveformMode.Reactive -> waveformView.setReactiveMode()
+            WaveformMode.Ambient -> waveformView.setAmbientMode()
+        }
+
+        if (visible) {
+            if (waveformContainer.visibility != VISIBLE) {
+                waveformContainer.visibility = VISIBLE
+                waveformContainer.animate().cancel()
+                waveformContainer.alpha = 0f
+                waveformContainer.animate().alpha(1f).setDuration(180L).start()
+            }
+        } else if (waveformContainer.visibility == VISIBLE) {
+            waveformContainer.animate().cancel()
+            waveformContainer.animate()
+                .alpha(0f)
+                .setDuration(140L)
+                .withEndAction {
+                    waveformContainer.visibility = GONE
+                }
+                .start()
+        }
+    }
+
+    private fun createCircleIconButton(
+        iconRes: Int,
+        contentDescription: String,
+        onClick: () -> Unit
+    ): AppCompatImageButton {
+        return AppCompatImageButton(context).apply {
+            setImageResource(iconRes)
+            imageTintList = android.content.res.ColorStateList.valueOf(colorTextMuted)
+            scaleType = ImageView.ScaleType.CENTER_INSIDE
+            this.contentDescription = contentDescription
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.OVAL
+                setColor(colorPanelAlt)
+                setStroke(dp(1), colorKeyBorder)
+            }
+            setPadding(dp(12), dp(12), dp(12), dp(12))
+            setOnClickListener {
+                performTapHaptic()
+                onClick()
+            }
+        }
+    }
+
+    private fun errorToText(reason: DictationError): String {
+        return when (reason) {
+            DictationError.PermissionDenied -> context.getString(R.string.ime_permission_denied)
+            DictationError.ConfigurationMissing -> context.getString(R.string.ime_configuration_missing)
+            DictationError.AudioCaptureFailed -> context.getString(R.string.ime_unknown_error)
+            DictationError.TranscriptionFailed -> context.getString(R.string.ime_transcription_failed)
+            DictationError.TooShort -> context.getString(R.string.ime_too_short)
+            DictationError.NoSpeechDetected -> context.getString(R.string.ime_no_speech)
+            DictationError.Unknown -> context.getString(R.string.ime_unknown_error)
+        }
+    }
+
+    private fun roundedRectDrawable(radiusDp: Int, fillColor: Int, strokeColor: Int): GradientDrawable {
+        return GradientDrawable().apply {
+            shape = GradientDrawable.RECTANGLE
+            cornerRadius = dp(radiusDp).toFloat()
+            setColor(fillColor)
+            setStroke(dp(1), strokeColor)
+        }
+    }
+
+    private fun performTapHaptic() {
+        performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
     }
 
     private fun dp(value: Int): Int =
-        (value * context.resources.displayMetrics.density).toInt()
+        (value * resources.displayMetrics.density).toInt()
 
-    private fun startHalo(durationMs: Long, color: Int, maxAlpha: Float) {
-        haloAnimator?.cancel()
-        haloColor = color
-        haloDrawable.invalidateSelf()
-        actionHalo.visibility = VISIBLE
-        actionHalo.scaleX = 0.9f
-        actionHalo.scaleY = 0.9f
-        actionHalo.alpha = maxAlpha * 0.6f
-        haloAnimator = ObjectAnimator.ofPropertyValuesHolder(
-            actionHalo,
-            PropertyValuesHolder.ofFloat(View.SCALE_X, 0.9f, 1.12f),
-            PropertyValuesHolder.ofFloat(View.SCALE_Y, 0.9f, 1.12f),
-            PropertyValuesHolder.ofFloat(View.ALPHA, maxAlpha * 0.6f, maxAlpha)
-        ).apply {
-            duration = durationMs
-            repeatMode = ObjectAnimator.REVERSE
-            repeatCount = ObjectAnimator.INFINITE
-            interpolator = AccelerateDecelerateInterpolator()
-            start()
-        }
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        eraseRepeater.stop()
     }
 
-    private fun stopHalo() {
-        haloAnimator?.cancel()
-        haloAnimator = null
-        actionHalo.visibility = INVISIBLE
-        actionHalo.alpha = 0f
-        actionHalo.scaleX = 1f
-        actionHalo.scaleY = 1f
+    private enum class WaveformMode {
+        Idle,
+        Reactive,
+        Ambient
     }
-
-
 
     private inner class EraseRepeater {
         private val handler = android.os.Handler(android.os.Looper.getMainLooper())
         private val repeatDelayMs = 350L
-        private val repeatIntervalMs = 60L
+        private val repeatIntervalMs = 70L
         private var active = false
+
         private val repeatRunnable = object : Runnable {
             override fun run() {
                 if (!active) return

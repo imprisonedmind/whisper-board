@@ -1,0 +1,9 @@
+org.gradle.jvmargs=-Xmx2g -Dfile.encoding=UTF-8
+android.useAndroidX=true
+kotlin.code.style=official
+android.nonTransitiveRClass=true
+
+# OpenAI Whisper API (set locally; do not commit secrets)
+OPENAI_API_KEY=your_openai_api_key_here
+# Optional override
+OPENAI_BASE_URL=https://api.openai.com/v1
