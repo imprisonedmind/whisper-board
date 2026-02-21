@@ -9,6 +9,12 @@ Android dictation IME scaffold that uses the OpenAI Whisper API for transcriptio
 - Settings activity for permissions, IME settings, and API status.
 - Unit test coverage for dictation state flow and commit behavior.
 
+## Screenshot
+Screenshots of the keyboard UI:
+
+![Walkie Talkie Keyboard](docs/images/keyboard.webp)
+![Walkie Talkie Transcribing](docs/images/transcribing.webp)
+
 ## Important setup notes
 1. Provide an OpenAI API key for builds via environment variables:
    - `OPENAI_API_KEY` (required)
