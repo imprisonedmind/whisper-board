@@ -14,8 +14,8 @@ Screenshots of the keyboard UI:
 
 <table>
   <tr>
-    <td><img src="docs/images/keyboard.webp" alt="Walkie Talkie Keyboard" width="420"></td>
-    <td><img src="docs/images/transcribing.webp" alt="Walkie Talkie Transcribing" width="420"></td>
+    <td width="50%"><img src="docs/images/keyboard.webp" alt="Walkie Talkie Keyboard" width="360"></td>
+    <td width="50%"><img src="docs/images/transcribing.webp" alt="Walkie Talkie Transcribing" width="360"></td>
   </tr>
 </table>
 
