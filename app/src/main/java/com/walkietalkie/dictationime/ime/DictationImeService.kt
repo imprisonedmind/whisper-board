@@ -10,6 +10,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.view.WindowManager
 import androidx.core.content.ContextCompat
 import com.walkietalkie.dictationime.asr.WhisperApiRecognizer
 import com.walkietalkie.dictationime.audio.AndroidAudioCapture
@@ -53,6 +54,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             },
             onStateChanged = { state ->
                 keyboardView?.render(state)
+                updateKeepScreenOn(state == DictationState.Recording)
                 if (state is DictationState.Error) {
                     pendingSend = false
                     launch {
@@ -82,6 +84,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         pendingSend = false
         dictationController.cancel()
         keyboardView?.render(dictationController.state)
+        updateKeepScreenOn(false)
     }
 
     override fun onDestroy() {
@@ -89,6 +92,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         runBlocking {
             dictationController.close()
         }
+        updateKeepScreenOn(false)
         cancel()
     }
 
@@ -140,6 +144,17 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         val features = extractAudioFeatures(chunk)
         keyboardView?.post {
             keyboardView?.updateWaveform(features)
+        }
+    }
+
+    private fun updateKeepScreenOn(keepOn: Boolean) {
+        keyboardView?.keepScreenOn = keepOn
+        window?.window?.let { imeWindow ->
+            if (keepOn) {
+                imeWindow.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            } else {
+                imeWindow.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            }
         }
     }
 

@@ -18,9 +18,13 @@ Screenshots of the keyboard UI:
 1. Provide an OpenAI API key for builds via environment variables:
    - `OPENAI_API_KEY` (required)
    - `OPENAI_BASE_URL` (optional, defaults to `https://api.openai.com/v1`)
-2. Local setup (recommended):
+2. Local setup (repo-specific, recommended):
+   - Add the key to `local.properties` in the repo root (this file is gitignored):
+   - `OPENAI_API_KEY=...`
+   - `OPENAI_BASE_URL=https://api.openai.com/v1` (optional)
+3. Optional environment variable override:
    - `export OPENAI_API_KEY=...` (and optionally `export OPENAI_BASE_URL=...`) in your shell.
-3. Optional Gradle property fallback:
+4. Optional Gradle property fallback:
    - Copy `gradle.properties.example` to `~/.gradle/gradle.properties` and fill in `OPENAI_API_KEY`.
    - Or pass `-POPENAI_API_KEY=...` when invoking Gradle.
 
