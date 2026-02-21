@@ -7,6 +7,8 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.widget.Button
+import android.widget.ImageButton
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -18,6 +20,8 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var apiStatusText: TextView
+    private lateinit var homeScroll: ScrollView
+    private lateinit var settingsSection: TextView
 
     private val requestMicPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -29,9 +33,22 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         apiStatusText = findViewById(R.id.apiStatusText)
+        homeScroll = findViewById(R.id.homeScroll)
+        settingsSection = findViewById(R.id.settingsTitleText)
         val grantPermissionButton: Button = findViewById(R.id.grantPermissionButton)
         val openImeSettingsButton: Button = findViewById(R.id.openImeSettingsButton)
         val openAppSettingsButton: Button = findViewById(R.id.openAppSettingsButton)
+        val profileButton: ImageButton = findViewById(R.id.profileButton)
+        val openProfileSettingsButton: Button = findViewById(R.id.openProfileSettingsButton)
+
+        val scrollToSettings = {
+            homeScroll.post {
+                homeScroll.smoothScrollTo(0, settingsSection.top)
+            }
+        }
+
+        profileButton.setOnClickListener { scrollToSettings() }
+        openProfileSettingsButton.setOnClickListener { scrollToSettings() }
 
         grantPermissionButton.setOnClickListener {
             requestMicPermission.launch(Manifest.permission.RECORD_AUDIO)
