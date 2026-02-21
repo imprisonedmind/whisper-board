@@ -12,12 +12,7 @@ Android dictation IME scaffold that uses the OpenAI Whisper API for transcriptio
 ## Screenshot
 Screenshots of the keyboard UI:
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/keyboard.webp" alt="Walkie Talkie Keyboard" width="360"></td>
-    <td width="50%"><img src="docs/images/transcribing.webp" alt="Walkie Talkie Transcribing" width="360"></td>
-  </tr>
-</table>
+![Walkie Talkie Keyboard](docs/images/hero_image.jpg)
 
 ## Important setup notes
 1. Provide an OpenAI API key for builds via environment variables:
