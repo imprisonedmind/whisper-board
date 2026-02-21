@@ -13,8 +13,9 @@ Android dictation IME scaffold that uses the OpenAI Whisper API for transcriptio
 1. Provide an OpenAI API key for builds via a Gradle property:
    - `OPENAI_API_KEY` (required)
    - `OPENAI_BASE_URL` (optional, defaults to `https://api.openai.com/v1`)
-2. Example for local development:
-   - Add to `~/.gradle/gradle.properties` or pass `-POPENAI_API_KEY=...` when invoking Gradle.
+2. Local setup (recommended):
+   - Copy `gradle.properties.example` to `~/.gradle/gradle.properties` and fill in `OPENAI_API_KEY`.
+   - Alternatively, pass `-POPENAI_API_KEY=...` when invoking Gradle.
 
 ## Main paths
 - `app/src/main/java/com/walkietalkie/dictationime/ime/DictationImeService.kt`
