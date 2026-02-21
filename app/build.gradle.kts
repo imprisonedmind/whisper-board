@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -15,14 +17,32 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        val localProperties = Properties().apply {
+            val localFile = rootProject.file("local.properties")
+            if (localFile.exists()) {
+                localFile.inputStream().use { load(it) }
+            }
+        }
         val openAiApiKey = System.getenv("OPENAI_API_KEY")
+            ?: localProperties.getProperty("OPENAI_API_KEY")
             ?: (project.findProperty("OPENAI_API_KEY") as String?)
             ?: ""
+        val useOpenAiDirect = System.getenv("USE_OPENAI_DIRECT")
+            ?: localProperties.getProperty("USE_OPENAI_DIRECT")
+            ?: (project.findProperty("USE_OPENAI_DIRECT") as String?)
+            ?: "false"
         val openAiBaseUrl = System.getenv("OPENAI_BASE_URL")
+            ?: localProperties.getProperty("OPENAI_BASE_URL")
             ?: (project.findProperty("OPENAI_BASE_URL") as String?)
             ?: "https://api.openai.com/v1"
+        val backendBaseUrl = System.getenv("BACKEND_BASE_URL")
+            ?: localProperties.getProperty("BACKEND_BASE_URL")
+            ?: (project.findProperty("BACKEND_BASE_URL") as String?)
+            ?: ""
         buildConfigField("String", "OPENAI_API_KEY", "\"${openAiApiKey}\"")
         buildConfigField("String", "OPENAI_BASE_URL", "\"${openAiBaseUrl}\"")
+        buildConfigField("String", "BACKEND_BASE_URL", "\"${backendBaseUrl}\"")
+        buildConfigField("boolean", "USE_OPENAI_DIRECT", useOpenAiDirect)
     }
 
     buildTypes {

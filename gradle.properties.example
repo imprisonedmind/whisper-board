@@ -4,6 +4,11 @@ kotlin.code.style=official
 android.nonTransitiveRClass=true
 
 # OpenAI Whisper API (set locally; do not commit secrets)
+# If USE_OPENAI_DIRECT=true, the app calls OpenAI directly and requires OPENAI_API_KEY.
+USE_OPENAI_DIRECT=true
 OPENAI_API_KEY=your_openai_api_key_here
 # Optional override
 OPENAI_BASE_URL=https://api.openai.com/v1
+
+# If USE_OPENAI_DIRECT=false, the app calls your backend proxy.
+BACKEND_BASE_URL=https://your-backend.example.com

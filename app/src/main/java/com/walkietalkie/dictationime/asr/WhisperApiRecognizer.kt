@@ -89,8 +89,13 @@ class WhisperApiRecognizer(
     override suspend fun close() = Unit
 
     private fun ensureConfigured() {
-        if (config.apiKey.isBlank()) {
-            throw IllegalStateException("OpenAI API key missing")
+        if (!config.isConfigured()) {
+            val message = if (config.useOpenAiDirect) {
+                "OpenAI API key missing"
+            } else {
+                "Backend base URL missing"
+            }
+            throw IllegalStateException(message)
         }
     }
 
