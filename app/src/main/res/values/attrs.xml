@@ -1,0 +1,8 @@
+<resources>
+    <declare-styleable name="RoundedCircularProgressView">
+        <attr name="rcp_progress" format="float" />
+        <attr name="rcp_trackColor" format="color" />
+        <attr name="rcp_indicatorColor" format="color" />
+        <attr name="rcp_strokeWidth" format="dimension" />
+    </declare-styleable>
+</resources>

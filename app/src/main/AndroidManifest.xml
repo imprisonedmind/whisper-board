@@ -21,6 +21,18 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".settings.ProfileActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".settings.SettingsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".settings.CreditStoreActivity"
+            android:exported="false" />
+
         <service
             android:name=".ime.DictationImeService"
             android:directBootAware="true"

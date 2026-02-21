@@ -1,8 +1,14 @@
 <resources>
     <color name="surface">#0F1113</color>
     <color name="surface_alt">#1B1F23</color>
+    <color name="surface_card">#15191D</color>
+    <color name="surface_depth">#0B0D10</color>
     <color name="ink">#E7E2D7</color>
+    <color name="ink_muted">#A7A198</color>
+    <color name="border_subtle">#2A3036</color>
     <color name="accent">#5EEAD4</color>
     <color name="accent_pressed">#2DD4BF</color>
+    <color name="accent_soft">#1D8F81</color>
+    <color name="accent_glow">#0E3A35</color>
     <color name="on_primary">#0F1113</color>
 </resources>
