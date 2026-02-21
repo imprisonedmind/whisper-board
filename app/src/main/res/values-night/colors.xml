@@ -1,0 +1,8 @@
+<resources>
+    <color name="surface">#0F1113</color>
+    <color name="surface_alt">#1B1F23</color>
+    <color name="ink">#E7E2D7</color>
+    <color name="accent">#5EEAD4</color>
+    <color name="accent_pressed">#2DD4BF</color>
+    <color name="on_primary">#0F1113</color>
+</resources>

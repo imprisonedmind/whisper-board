@@ -1,0 +1,10 @@
+.gradle/
+.gradle-local/
+.idea/
+local.properties
+/build/
+**/build/
+**/.cxx/
+**/captures/
+.DS_Store
+.codex_write_test
