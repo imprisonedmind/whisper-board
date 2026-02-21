@@ -84,6 +84,44 @@
                 android:textSize="12sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/currencyRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="14dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/currency_label"
+                android:textColor="@color/ink"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/currencyValue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="6dp"
+                android:text="USD"
+                android:textColor="@color/ink_muted"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="@color/ink_muted" />
+        </LinearLayout>
+
         <GridLayout
             android:id="@+id/creditGrid"
             android:layout_width="match_parent"
@@ -125,6 +163,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/price150"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -166,6 +205,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/price300"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -207,6 +247,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/price500"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -249,6 +290,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/price1000"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
@@ -291,6 +333,7 @@
                 </LinearLayout>
 
                 <TextView
+                    android:id="@+id/price2500"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
