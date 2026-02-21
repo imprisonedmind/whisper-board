@@ -67,7 +67,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             onMicTap = { handleMicTap() }
             onOpenSettings = { openSettingsScreen() }
             onEraseTap = { performErase() }
-            onBackToKeyboard = { switchBackToKeyboard() }
+            onSwitchKeyboard = { switchBackToKeyboard() }
             render(dictationController.state)
         }
         keyboardView = view

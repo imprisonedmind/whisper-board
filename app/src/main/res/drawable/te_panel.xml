@@ -1,0 +1,59 @@
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/te_panel_radius" />
+            <gradient
+                android:angle="315"
+                android:startColor="@color/te_metal_light"
+                android:endColor="@color/te_metal_dark" />
+            <stroke android:width="1dp" android:color="@color/te_panel_stroke" />
+        </shape>
+    </item>
+    <item
+        android:insetLeft="@dimen/te_panel_inset"
+        android:insetTop="@dimen/te_panel_inset"
+        android:insetRight="@dimen/te_panel_inset"
+        android:insetBottom="@dimen/te_panel_inset">
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/te_panel_radius" />
+            <gradient
+                android:angle="135"
+                android:startColor="@color/te_panel_highlight"
+                android:endColor="@color/te_metal_mid" />
+            <stroke android:width="1dp" android:color="@color/te_panel_inner" />
+        </shape>
+    </item>
+
+    <item
+        android:width="@dimen/te_panel_screw"
+        android:height="@dimen/te_panel_screw"
+        android:gravity="top|left">
+        <shape android:shape="oval">
+            <solid android:color="@color/te_panel_stroke" />
+        </shape>
+    </item>
+    <item
+        android:width="@dimen/te_panel_screw"
+        android:height="@dimen/te_panel_screw"
+        android:gravity="top|right">
+        <shape android:shape="oval">
+            <solid android:color="@color/te_panel_stroke" />
+        </shape>
+    </item>
+    <item
+        android:width="@dimen/te_panel_screw"
+        android:height="@dimen/te_panel_screw"
+        android:gravity="bottom|left">
+        <shape android:shape="oval">
+            <solid android:color="@color/te_panel_stroke" />
+        </shape>
+    </item>
+    <item
+        android:width="@dimen/te_panel_screw"
+        android:height="@dimen/te_panel_screw"
+        android:gravity="bottom|right">
+        <shape android:shape="oval">
+            <solid android:color="@color/te_panel_stroke" />
+        </shape>
+    </item>
+</layer-list>

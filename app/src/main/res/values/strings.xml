@@ -21,12 +21,24 @@
     <string name="ime_unknown_error">Something went wrong</string>
     <string name="ime_tap_to_start">Tap to Speak</string>
     <string name="ime_tap_to_stop">Tap to Transcribe</string>
+    <string name="ime_preview_hint">Tap the mic to speak</string>
+    <string name="ime_typing_hint">Type a message or switch to voice mode</string>
+    <string name="ime_keyboard_mode">Keyboard</string>
+    <string name="ime_voice_mode">Voice Mode</string>
+    <string name="ime_badge">EN-US | Whisper | API</string>
     <string name="ime_open_settings">Open settings</string>
     <string name="ime_back_to_keyboard">Back to keyboard</string>
     <string name="ime_erase">Erase</string>
     <string name="ime_mic">Start or stop dictation</string>
+    <string name="ime_cancel">Cancel dictation</string>
+    <string name="ime_label_tap_to_record">TAP TO RECORD</string>
+    <string name="ime_label_recording">RECORDING</string>
+    <string name="ime_label_transcribing">TRANSCRIBING</string>
+    <string name="ime_label_back">BACK</string>
+    <string name="ime_label_settings">SETTINGS</string>
+    <string name="ime_label_backspace">BACKSPACE</string>
+    <string name="ime_label_cancel">CANCEL</string>
     <string name="ime_transcribe_send">Transcribe and Send</string>
     <string name="ime_tap_to_send">Tap to send</string>
     <string name="ime_transcribing_send">Transcribing and sending...</string>
 </resources>
-

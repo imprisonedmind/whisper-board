@@ -5,4 +5,36 @@
     <color name="accent">#0F766E</color>
     <color name="accent_pressed">#0C5E58</color>
     <color name="on_primary">#FFFFFF</color>
+
+    <color name="te_metal_light">#B8BDB6</color>
+    <color name="te_metal_mid">#8C928C</color>
+    <color name="te_metal_dark">#5D645E</color>
+    <color name="te_panel_stroke">#4B514C</color>
+    <color name="te_panel_highlight">#D7DBD3</color>
+    <color name="te_panel_inner">#AAB0A9</color>
+
+    <color name="te_button_light">#C9CDC7</color>
+    <color name="te_button_mid">#A0A59F</color>
+    <color name="te_button_dark">#747A74</color>
+    <color name="te_button_stroke">#555B56</color>
+
+    <color name="te_red">#C7463A</color>
+    <color name="te_red_dark">#8E2B23</color>
+    <color name="te_red_light">#E36B60</color>
+
+    <color name="te_blue">#3A6FCE</color>
+    <color name="te_blue_light">#6F96E5</color>
+    <color name="te_blue_dark">#2B55A0</color>
+
+    <color name="te_orange">#E4A23B</color>
+    <color name="te_orange_light">#F0C46E</color>
+    <color name="te_orange_dark">#B57B21</color>
+
+    <color name="te_dial_light">#6C6F6B</color>
+    <color name="te_dial_dark">#3E413E</color>
+    <color name="te_dial_stroke">#2E312E</color>
+
+    <color name="te_icon_dark">#242724</color>
+    <color name="te_label">#2E322E</color>
+    <color name="te_ring_highlight">#E3E7E0</color>
 </resources>
