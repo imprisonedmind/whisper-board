@@ -15,8 +15,11 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        val openAiApiKey = (project.findProperty("OPENAI_API_KEY") as String?) ?: ""
-        val openAiBaseUrl = (project.findProperty("OPENAI_BASE_URL") as String?)
+        val openAiApiKey = System.getenv("OPENAI_API_KEY")
+            ?: (project.findProperty("OPENAI_API_KEY") as String?)
+            ?: ""
+        val openAiBaseUrl = System.getenv("OPENAI_BASE_URL")
+            ?: (project.findProperty("OPENAI_BASE_URL") as String?)
             ?: "https://api.openai.com/v1"
         buildConfigField("String", "OPENAI_API_KEY", "\"${openAiApiKey}\"")
         buildConfigField("String", "OPENAI_BASE_URL", "\"${openAiBaseUrl}\"")
