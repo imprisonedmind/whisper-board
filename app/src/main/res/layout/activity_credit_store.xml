@@ -98,6 +98,15 @@
             android:padding="14dp">
 
             <TextView
+                android:id="@+id/currencyFlag"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_marginEnd="12dp"
+                android:gravity="center"
+                android:text="🇺🇸"
+                android:textSize="18sp" />
+
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
@@ -107,11 +116,20 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/currencyValue"
+                android:id="@+id/currencyCode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="USD"
+                android:textColor="@color/ink_muted"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/currencyName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
-                android:text="USD"
+                android:text="United States Dollar"
                 android:textColor="@color/ink_muted"
                 android:textSize="14sp" />
 

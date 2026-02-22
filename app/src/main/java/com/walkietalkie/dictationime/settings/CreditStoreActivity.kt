@@ -3,6 +3,7 @@ package com.walkietalkie.dictationime.settings
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
@@ -20,11 +21,25 @@ import okhttp3.Request
 import org.json.JSONObject
 
 class CreditStoreActivity : AppCompatActivity() {
+    private data class CurrencyOption(
+        val code: String,
+        val name: String,
+        val flagEmoji: String
+    )
+
     private var selectedOption: View? = null
     private lateinit var buyButton: Button
-    private lateinit var currencyValue: TextView
+    private lateinit var currencyFlag: TextView
+    private lateinit var currencyCode: TextView
+    private lateinit var currencyName: TextView
     private val httpClient = OkHttpClient()
     private var selectedCurrency = "USD"
+    private val currencyOptions = listOf(
+        CurrencyOption("USD", "United States Dollar", "🇺🇸"),
+        CurrencyOption("ZAR", "South African Rand", "🇿🇦"),
+        CurrencyOption("EUR", "Euro", "🇪🇺"),
+        CurrencyOption("GBP", "British Pound", "🇬🇧")
+    )
     private val packPrices = mutableMapOf<String, String>()
     private val packByOptionId = mapOf(
         R.id.option149 to "pack_150",
@@ -47,16 +62,16 @@ class CreditStoreActivity : AppCompatActivity() {
         "pack_1000" to R.id.price1000,
         "pack_2500" to R.id.price2500
     )
-    private val supportedCurrencies = listOf("USD", "ZAR", "EUR", "GBP")
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_credit_store)
 
         findViewById<ImageButton>(R.id.backButton).setOnClickListener { finish() }
         buyButton = findViewById(R.id.confirmPurchaseButton)
-        currencyValue = findViewById(R.id.currencyValue)
-        currencyValue.text = selectedCurrency
+        currencyFlag = findViewById(R.id.currencyFlag)
+        currencyCode = findViewById(R.id.currencyCode)
+        currencyName = findViewById(R.id.currencyName)
+        updateCurrencyRow()
         findViewById<View>(R.id.currencyRow).setOnClickListener { showCurrencyPicker() }
 
         val option149 = findViewById<View>(R.id.option149)
@@ -111,17 +126,25 @@ class CreditStoreActivity : AppCompatActivity() {
     }
 
     private fun showCurrencyPicker() {
+        val adapter = CurrencyAdapter(currencyOptions)
         AlertDialog.Builder(this)
             .setTitle(R.string.currency_select_title)
-            .setItems(supportedCurrencies.toTypedArray()) { _, index ->
-                val selected = supportedCurrencies[index]
-                if (selected != selectedCurrency) {
-                    selectedCurrency = selected
-                    currencyValue.text = selected
+            .setAdapter(adapter) { _, index ->
+                val selected = currencyOptions[index]
+                if (selected.code != selectedCurrency) {
+                    selectedCurrency = selected.code
+                    updateCurrencyRow()
                     loadPricing()
                 }
             }
             .show()
+    }
+
+    private fun updateCurrencyRow() {
+        val selected = currencyOptions.firstOrNull { it.code == selectedCurrency } ?: currencyOptions.first()
+        currencyFlag.text = selected.flagEmoji
+        currencyCode.text = selected.code
+        currencyName.text = selected.name
     }
 
     private fun loadPricing() {
@@ -174,6 +197,25 @@ class CreditStoreActivity : AppCompatActivity() {
             "GBP" -> "£$amount"
             "ZAR" -> "R $amount"
             else -> "$amount $currency"
+        }
+    }
+
+    private inner class CurrencyAdapter(
+        private val items: List<CurrencyOption>
+    ) : android.widget.BaseAdapter() {
+        override fun getCount(): Int = items.size
+
+        override fun getItem(position: Int): CurrencyOption = items[position]
+
+        override fun getItemId(position: Int): Long = position.toLong()
+
+        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
+            val view = convertView ?: layoutInflater.inflate(R.layout.item_currency_option, parent, false)
+            val item = getItem(position)
+            view.findViewById<TextView>(R.id.currencyFlag).text = item.flagEmoji
+            view.findViewById<TextView>(R.id.currencyCode).text = item.code
+            view.findViewById<TextView>(R.id.currencyName).text = item.name
+            return view
         }
     }
 }
