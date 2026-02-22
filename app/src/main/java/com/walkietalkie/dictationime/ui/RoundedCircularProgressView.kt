@@ -79,5 +79,10 @@ class RoundedCircularProgressView @JvmOverloads constructor(
         canvas.drawArc(rect, -90f, 360f * clamped, false, paint)
     }
 
+    fun setProgress(value: Float) {
+        progress = value.coerceIn(0f, 1f)
+        invalidate()
+    }
+
     private fun dpToPx(dp: Float): Float = dp * resources.displayMetrics.density
 }

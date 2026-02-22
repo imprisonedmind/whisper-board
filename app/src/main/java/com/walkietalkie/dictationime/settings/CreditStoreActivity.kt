@@ -2,6 +2,8 @@ package com.walkietalkie.dictationime.settings
 
 import android.net.Uri
 import android.os.Bundle
+import android.content.Intent
+import java.net.URLEncoder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -13,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.BuildConfig
+import com.walkietalkie.dictationime.auth.AuthStore
+import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -32,6 +36,7 @@ class CreditStoreActivity : AppCompatActivity() {
     private lateinit var currencyFlag: TextView
     private lateinit var currencyCode: TextView
     private lateinit var currencyName: TextView
+    private lateinit var totalCreditsValue: TextView
     private val httpClient = OkHttpClient()
     private var selectedCurrency = "USD"
     private val currencyOptions = listOf(
@@ -67,6 +72,13 @@ class CreditStoreActivity : AppCompatActivity() {
     )
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!AuthStore.isSignedIn(this)) {
+            startActivity(Intent(this, LoginEmailActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_credit_store)
 
         findViewById<ImageButton>(R.id.backButton).setOnClickListener { finish() }
@@ -74,6 +86,7 @@ class CreditStoreActivity : AppCompatActivity() {
         currencyFlag = findViewById(R.id.currencyFlag)
         currencyCode = findViewById(R.id.currencyCode)
         currencyName = findViewById(R.id.currencyName)
+        totalCreditsValue = findViewById(R.id.totalCreditsValue)
         updateCurrencyRow()
         findViewById<View>(R.id.currencyRow).setOnClickListener { showCurrencyPicker() }
 
@@ -91,6 +104,7 @@ class CreditStoreActivity : AppCompatActivity() {
 
         selectOption(option1000)
         loadPricing()
+        loadBalance()
 
         buyButton.setOnClickListener {
             val selectedId = selectedOption?.id
@@ -106,9 +120,20 @@ class CreditStoreActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency"
+            val token = AuthStore.getAccessToken(this)
+            val tokenParam = if (!token.isNullOrBlank()) {
+                "&access_token=${URLEncoder.encode(token, "UTF-8")}"
+            } else {
+                ""
+            }
+            val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency$tokenParam"
             startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url)))
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadBalance()
     }
 
     private fun selectOption(view: View) {
@@ -190,6 +215,36 @@ class CreditStoreActivity : AppCompatActivity() {
                 updateBuyButton()
             } catch (e: Exception) {
                 Toast.makeText(this@CreditStoreActivity, R.string.currency_load_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun loadBalance() {
+        val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
+        if (baseUrl.isBlank()) {
+            return
+        }
+        val token = AuthStore.getAccessToken(this) ?: return
+
+        lifecycleScope.launch {
+            try {
+                val request = Request.Builder()
+                    .url("$baseUrl/credits/balance")
+                    .header("Authorization", "Bearer $token")
+                    .build()
+                val body = withContext(Dispatchers.IO) {
+                    httpClient.newCall(request).execute().use { response ->
+                        if (!response.isSuccessful) {
+                            throw IllegalStateException("Balance fetch failed: ${response.code}")
+                        }
+                        response.body?.string().orEmpty()
+                    }
+                }
+                val json = JSONObject(body)
+                val minutesRemaining = json.optInt("minutesRemaining", 0)
+                totalCreditsValue.text = minutesRemaining.coerceAtLeast(0).toString()
+            } catch (_: Exception) {
+                // Keep existing value on failure.
             }
         }
     }

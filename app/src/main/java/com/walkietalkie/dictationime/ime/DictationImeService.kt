@@ -32,7 +32,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private val logTag = "DictationImeService"
 
     private val modelManager by lazy { RemoteModelManager() }
-    private val recognizer by lazy { WhisperApiRecognizer() }
+    private val recognizer by lazy { WhisperApiRecognizer(this) }
     private val audioCapture by lazy { AndroidAudioCapture() }
 
     private lateinit var dictationController: DictationController

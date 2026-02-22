@@ -1,5 +1,7 @@
 package com.walkietalkie.dictationime.asr
 
+import android.content.Context
+import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.openai.OpenAiConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -16,8 +18,10 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.TimeUnit
 import kotlin.system.measureTimeMillis
+import kotlin.math.roundToLong
 
 class WhisperApiRecognizer(
+    private val context: Context,
     private val config: OpenAiConfig = OpenAiConfig,
     private val client: OkHttpClient = defaultClient()
 ) : SpeechRecognizer {
@@ -43,8 +47,9 @@ class WhisperApiRecognizer(
                     ensureConfigured()
                     val modelId = activeModelId ?: throw IllegalStateException("Recognizer is not initialized")
                     val wavBytes = pcm16ToWavBytes(pcm16Mono16k, sampleRateHz = 16_000, channels = 1)
+                    val durationMs = ((pcm16Mono16k.size.toDouble() / 16_000.0) * 1000.0).roundToLong()
 
-                    val requestBody = MultipartBody.Builder()
+                    val builder = MultipartBody.Builder()
                         .setType(MultipartBody.FORM)
                         .addFormDataPart("model", modelId)
                         .addFormDataPart(
@@ -52,15 +57,26 @@ class WhisperApiRecognizer(
                             "audio.wav",
                             wavBytes.toRequestBody("audio/wav".toMediaType())
                         )
-                        .build()
+                    if (!config.useOpenAiDirect) {
+                        builder.addFormDataPart("duration_ms", durationMs.toString())
+                        builder.addFormDataPart("device_id", AuthStore.getOrCreateDeviceId(context))
+                    }
+                    val requestBody = builder.build()
 
                     var responsePayload: String? = null
                     val elapsed = measureTimeMillis {
-                        val request = Request.Builder()
+                        val requestBuilder = Request.Builder()
                             .url("${config.baseUrl}/audio/transcriptions")
-                            .header("Authorization", "Bearer ${config.apiKey}")
                             .post(requestBody)
-                            .build()
+                        val authHeader = if (config.useOpenAiDirect) {
+                            config.apiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+                        } else {
+                            AuthStore.getAccessToken(context)?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
+                        }
+                        if (authHeader != null) {
+                            requestBuilder.header("Authorization", authHeader)
+                        }
+                        val request = requestBuilder.build()
 
                         client.newCall(request).execute().use { response ->
                             responsePayload = response.body?.string()
@@ -96,6 +112,13 @@ class WhisperApiRecognizer(
                 "Backend base URL missing"
             }
             throw IllegalStateException(message)
+        }
+
+        if (!config.useOpenAiDirect) {
+            val token = AuthStore.getAccessToken(context)
+            if (token.isNullOrBlank()) {
+                throw IllegalStateException("Login required")
+            }
         }
     }
 

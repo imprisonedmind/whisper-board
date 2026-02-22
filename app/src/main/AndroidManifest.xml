@@ -13,13 +13,25 @@
         android:theme="@style/Theme.DictationIme">
 
         <activity
-            android:name=".settings.MainActivity"
+            android:name=".auth.AuthGateActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".auth.LoginEmailActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.LoginOtpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".settings.MainActivity"
+            android:exported="false" />
 
         <activity
             android:name=".settings.ProfileActivity"

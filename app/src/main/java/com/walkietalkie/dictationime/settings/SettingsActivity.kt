@@ -15,6 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
+import com.walkietalkie.dictationime.auth.AuthStore
+import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import com.walkietalkie.dictationime.openai.OpenAiConfig
 import kotlinx.coroutines.launch
 
@@ -30,6 +32,13 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!AuthStore.isSignedIn(this)) {
+            startActivity(Intent(this, LoginEmailActivity::class.java))
+            finish()
+            return
+        }
+
         setContentView(R.layout.activity_settings)
 
         apiStatusText = findViewById(R.id.apiStatusText)
