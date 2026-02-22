@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
+import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
@@ -62,10 +63,16 @@ class MainActivity : AppCompatActivity() {
     private fun loadCredits() {
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) return
-        val token = AuthStore.getAccessToken(this) ?: return
 
         lifecycleScope.launch {
             try {
+                val token = AuthSessionManager.getValidAccessToken(this@MainActivity)
+                if (token.isNullOrBlank()) {
+                    AuthStore.clearSession(this@MainActivity)
+                    startActivity(Intent(this@MainActivity, LoginEmailActivity::class.java))
+                    finish()
+                    return@launch
+                }
                 val request = Request.Builder()
                     .url("$baseUrl/credits/balance")
                     .header("Authorization", "Bearer $token")

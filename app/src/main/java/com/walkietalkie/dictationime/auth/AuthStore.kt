@@ -7,6 +7,7 @@ import java.util.UUID
 object AuthStore {
     private const val PREFS_NAME = "walkie_auth"
     private const val KEY_ACCESS_TOKEN = "access_token"
+    private const val KEY_REFRESH_TOKEN = "refresh_token"
     private const val KEY_EXPIRES_AT = "expires_at"
     private const val KEY_EMAIL = "email"
     private const val KEY_DEVICE_ID = "device_id"
@@ -24,26 +25,36 @@ object AuthStore {
         return prefs(context).getString(KEY_EMAIL, null)
     }
 
+    fun getRefreshToken(context: Context): String? {
+        return prefs(context).getString(KEY_REFRESH_TOKEN, null)
+    }
+
     fun getExpiresAt(context: Context): Long {
         return prefs(context).getLong(KEY_EXPIRES_AT, 0L)
     }
 
-    fun isSignedIn(context: Context): Boolean {
+    fun isAccessTokenValid(context: Context, skewSeconds: Long = EXPIRY_SKEW_SECONDS): Boolean {
         val token = getAccessToken(context)
         if (token.isNullOrBlank()) return false
-        val expiresAt = getExpiresAt(context)
         val now = System.currentTimeMillis() / 1000
-        return expiresAt > now + EXPIRY_SKEW_SECONDS
+        return getExpiresAt(context) > now + skewSeconds
+    }
+
+    fun isSignedIn(context: Context): Boolean {
+        if (isAccessTokenValid(context)) return true
+        return !getRefreshToken(context).isNullOrBlank()
     }
 
     fun saveSession(
         context: Context,
         accessToken: String,
+        refreshToken: String?,
         expiresAtSeconds: Long,
         email: String
     ) {
         prefs(context).edit()
             .putString(KEY_ACCESS_TOKEN, accessToken)
+            .putString(KEY_REFRESH_TOKEN, refreshToken)
             .putLong(KEY_EXPIRES_AT, expiresAtSeconds)
             .putString(KEY_EMAIL, email)
             .apply()
@@ -52,6 +63,7 @@ object AuthStore {
     fun clearSession(context: Context) {
         prefs(context).edit()
             .remove(KEY_ACCESS_TOKEN)
+            .remove(KEY_REFRESH_TOKEN)
             .remove(KEY_EXPIRES_AT)
             .remove(KEY_EMAIL)
             .apply()

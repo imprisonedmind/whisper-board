@@ -98,9 +98,11 @@ class LoginOtpActivity : AppCompatActivity() {
                 }
 
                 val json = JSONObject(body)
-                val token = json.getString("accessToken")
+                val accessToken = json.getString("accessToken")
+                val refreshToken = json.optString("refreshToken", "").ifBlank { null }
                 val expiresAt = json.getLong("expiresAt")
-                AuthStore.saveSession(this@LoginOtpActivity, token, expiresAt, email)
+                val verifiedEmail = json.optString("email", email).ifBlank { email }
+                AuthStore.saveSession(this@LoginOtpActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
 
                 val intent = Intent(this@LoginOtpActivity, MainActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)

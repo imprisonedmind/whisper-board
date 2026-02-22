@@ -3,17 +3,29 @@ package com.walkietalkie.dictationime.auth
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.settings.MainActivity
+import kotlinx.coroutines.launch
 
 class AuthGateActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (AuthStore.isSignedIn(this)) {
-            startActivity(Intent(this, MainActivity::class.java))
-        } else {
-            startActivity(Intent(this, LoginEmailActivity::class.java))
+        lifecycleScope.launch {
+            val target = if (AuthStore.isSignedIn(this@AuthGateActivity)) {
+                val token = AuthSessionManager.getValidAccessToken(this@AuthGateActivity)
+                if (token.isNullOrBlank()) {
+                    AuthStore.clearSession(this@AuthGateActivity)
+                    LoginEmailActivity::class.java
+                } else {
+                    MainActivity::class.java
+                }
+            } else {
+                LoginEmailActivity::class.java
+            }
+
+            startActivity(Intent(this@AuthGateActivity, target))
+            finish()
         }
-        finish()
     }
 }

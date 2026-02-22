@@ -86,6 +86,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             onMicTap = { handleMicTap() }
             onOpenSettings = { openSettingsScreen() }
             onEraseTap = { performErase() }
+            onCancelTap = { handleCancelTap() }
             onSwitchKeyboard = { switchBackToKeyboard() }
             onBuyCreditsTap = { openCreditStoreScreen() }
             render(dictationController.state)
@@ -161,6 +162,14 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
                 }
             }
         }
+    }
+
+    private fun handleCancelTap() {
+        if (dictationController.state != DictationState.Recording) return
+        pendingSend = false
+        dictationController.cancel()
+        keyboardView?.render(dictationController.state)
+        updateKeepScreenOn(false)
     }
 
     private fun showError(error: DictationError) {

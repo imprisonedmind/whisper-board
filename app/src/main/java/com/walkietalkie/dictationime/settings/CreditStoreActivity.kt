@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.BuildConfig
+import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import kotlinx.coroutines.Dispatchers
@@ -120,14 +121,19 @@ class CreditStoreActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val token = AuthStore.getAccessToken(this)
-            val tokenParam = if (!token.isNullOrBlank()) {
-                "&access_token=${URLEncoder.encode(token, "UTF-8")}"
-            } else {
-                ""
+            lifecycleScope.launch {
+                val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
+                if (token.isNullOrBlank()) {
+                    AuthStore.clearSession(this@CreditStoreActivity)
+                    startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
+                    finish()
+                    return@launch
+                }
+
+                val tokenParam = "&access_token=${URLEncoder.encode(token, "UTF-8")}"
+                val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency$tokenParam"
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
             }
-            val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency$tokenParam"
-            startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url)))
         }
     }
 
@@ -224,10 +230,15 @@ class CreditStoreActivity : AppCompatActivity() {
         if (baseUrl.isBlank()) {
             return
         }
-        val token = AuthStore.getAccessToken(this) ?: return
-
         lifecycleScope.launch {
             try {
+                val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
+                if (token.isNullOrBlank()) {
+                    AuthStore.clearSession(this@CreditStoreActivity)
+                    startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
+                    finish()
+                    return@launch
+                }
                 val request = Request.Builder()
                     .url("$baseUrl/credits/balance")
                     .header("Authorization", "Bearer $token")

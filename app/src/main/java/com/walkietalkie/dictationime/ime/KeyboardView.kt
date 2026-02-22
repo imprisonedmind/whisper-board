@@ -29,6 +29,7 @@ class KeyboardView @JvmOverloads constructor(
     var onMicTap: (() -> Unit)? = null
     var onOpenSettings: (() -> Unit)? = null
     var onEraseTap: (() -> Unit)? = null
+    var onCancelTap: (() -> Unit)? = null
     var onSwitchKeyboard: (() -> Unit)? = null
     var onBuyCreditsTap: (() -> Unit)? = null
 
@@ -41,7 +42,10 @@ class KeyboardView @JvmOverloads constructor(
     private val colorTextPrimary = Color.parseColor("#E8EEF7")
     private val colorTextMuted = Color.parseColor("#92A0B7")
     private val colorAccent = Color.parseColor("#24C4B3")
-    private val colorRecording = Color.parseColor("#F0555D")
+    private val colorRecording = Color.parseColor("#4B8DFF")
+    private val colorError = Color.parseColor("#F0555D")
+    private val colorCancelFill = Color.parseColor("#A1303A")
+    private val colorCancelBorder = Color.parseColor("#F46B72")
     private val colorTranscribing = Color.parseColor("#31C48D")
 
     private val waveformView = WaveformView(context)
@@ -163,6 +167,7 @@ class KeyboardView @JvmOverloads constructor(
     private val eraseRepeater = EraseRepeater()
     private var waveformMode = WaveformMode.Idle
     private var outOfCreditsMode = false
+    private var backspaceMode = BackspaceMode.Erase
     private val controlsRow = LinearLayout(context).apply {
         orientation = HORIZONTAL
         gravity = Gravity.CENTER
@@ -204,6 +209,13 @@ class KeyboardView @JvmOverloads constructor(
         controlsRow.addView(backspaceButton, LayoutParams(dp(50), dp(50)))
 
         backspaceButton.setOnTouchListener { _, event ->
+            if (backspaceMode == BackspaceMode.Cancel) {
+                if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+                    performTapHaptic()
+                    onCancelTap?.invoke()
+                }
+                return@setOnTouchListener true
+            }
             when (event.actionMasked) {
                 MotionEvent.ACTION_DOWN -> {
                     performTapHaptic()
@@ -234,6 +246,7 @@ class KeyboardView @JvmOverloads constructor(
         }
         when (state) {
             DictationState.Idle -> {
+                setBackspaceMode(BackspaceMode.Erase)
                 setMicAppearance(
                     fillColor = colorPanelAlt,
                     borderColor = Color.parseColor("#3C4F67"),
@@ -248,11 +261,12 @@ class KeyboardView @JvmOverloads constructor(
             }
 
             DictationState.Recording -> {
+                setBackspaceMode(BackspaceMode.Cancel)
                 setMicAppearance(
-                    fillColor = Color.parseColor("#A1303A"),
-                    borderColor = Color.parseColor("#F46B72"),
-                    ringColor = Color.parseColor("#F46B72"),
-                    iconRes = R.drawable.ic_cancel_square,
+                    fillColor = Color.parseColor("#1E4FA3"),
+                    borderColor = colorRecording,
+                    ringColor = colorRecording,
+                    iconRes = R.drawable.ic_send,
                     iconTint = Color.WHITE,
                     enableMic = true
                 )
@@ -262,6 +276,7 @@ class KeyboardView @JvmOverloads constructor(
             }
 
             DictationState.Transcribing -> {
+                setBackspaceMode(BackspaceMode.Erase)
                 setMicAppearance(
                     fillColor = Color.parseColor("#1D684D"),
                     borderColor = Color.parseColor("#46D89F"),
@@ -276,6 +291,7 @@ class KeyboardView @JvmOverloads constructor(
             }
 
             is DictationState.Error -> {
+                setBackspaceMode(BackspaceMode.Erase)
                 setMicAppearance(
                     fillColor = colorPanelAlt,
                     borderColor = Color.parseColor("#3C4F67"),
@@ -285,7 +301,7 @@ class KeyboardView @JvmOverloads constructor(
                     enableMic = true
                 )
                 statusText.text = errorToText(state.reason)
-                statusText.setTextColor(colorRecording)
+                statusText.setTextColor(colorError)
                 setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
         }
@@ -334,6 +350,29 @@ class KeyboardView @JvmOverloads constructor(
         micIcon.imageTintList = android.content.res.ColorStateList.valueOf(iconTint)
         micButton.isEnabled = enableMic
         micButton.alpha = if (enableMic) 1f else 0.75f
+    }
+
+    private fun setBackspaceMode(mode: BackspaceMode) {
+        if (backspaceMode == mode) return
+        backspaceMode = mode
+        val background = backspaceButton.background as? GradientDrawable
+        when (mode) {
+            BackspaceMode.Erase -> {
+                backspaceButton.setImageResource(R.drawable.ic_backspace)
+                backspaceButton.imageTintList = android.content.res.ColorStateList.valueOf(colorTextMuted)
+                backspaceButton.contentDescription = context.getString(R.string.ime_erase)
+                background?.setColor(colorPanelAlt)
+                background?.setStroke(dp(1), colorKeyBorder)
+            }
+            BackspaceMode.Cancel -> {
+                backspaceButton.setImageResource(R.drawable.ic_cancel_square)
+                backspaceButton.imageTintList = android.content.res.ColorStateList.valueOf(Color.WHITE)
+                backspaceButton.contentDescription = context.getString(R.string.ime_cancel)
+                background?.setColor(colorCancelFill)
+                background?.setStroke(dp(1), colorCancelBorder)
+            }
+        }
+        background?.invalidateSelf()
     }
 
     fun updateWaveform(features: AudioFeatures) {
@@ -438,6 +477,11 @@ class KeyboardView @JvmOverloads constructor(
         Idle,
         Reactive,
         Ambient
+    }
+
+    private enum class BackspaceMode {
+        Erase,
+        Cancel
     }
 
     private inner class EraseRepeater {

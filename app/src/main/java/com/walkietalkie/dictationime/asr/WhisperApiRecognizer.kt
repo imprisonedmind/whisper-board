@@ -1,6 +1,7 @@
 package com.walkietalkie.dictationime.asr
 
 import android.content.Context
+import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.openai.OpenAiConfig
 import kotlinx.coroutines.Dispatchers
@@ -65,20 +66,41 @@ class WhisperApiRecognizer(
 
                     var responsePayload: String? = null
                     val elapsed = measureTimeMillis {
-                        val requestBuilder = Request.Builder()
-                            .url("${config.baseUrl}/audio/transcriptions")
-                            .post(requestBody)
-                        val authHeader = if (config.useOpenAiDirect) {
-                            config.apiKey.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
-                        } else {
-                            AuthStore.getAccessToken(context)?.takeIf { it.isNotBlank() }?.let { "Bearer $it" }
-                        }
-                        if (authHeader != null) {
-                            requestBuilder.header("Authorization", authHeader)
-                        }
-                        val request = requestBuilder.build()
+                        val openAiHeader = config.apiKey.takeIf { config.useOpenAiDirect && it.isNotBlank() }
+                            ?.let { "Bearer $it" }
 
-                        client.newCall(request).execute().use { response ->
+                        var backendToken: String? = null
+                        if (!config.useOpenAiDirect) {
+                            backendToken = AuthSessionManager.getValidAccessToken(context)
+                            if (backendToken.isNullOrBlank()) {
+                                throw IllegalStateException("Login required")
+                            }
+                        }
+
+                        val executeRequest = { authHeader: String? ->
+                            val requestBuilder = Request.Builder()
+                                .url("${config.baseUrl}/audio/transcriptions")
+                                .post(requestBody)
+                            if (!authHeader.isNullOrBlank()) {
+                                requestBuilder.header("Authorization", authHeader)
+                            }
+                            client.newCall(requestBuilder.build()).execute()
+                        }
+
+                        val firstHeader = openAiHeader ?: "Bearer $backendToken"
+                        var response = executeRequest(firstHeader)
+                        if (!response.isSuccessful && response.code == 401 && !config.useOpenAiDirect) {
+                            response.close()
+                            val refreshed = AuthSessionManager.refreshSession(context, force = true)
+                            if (refreshed) {
+                                backendToken = AuthStore.getAccessToken(context)
+                                response = executeRequest("Bearer $backendToken")
+                            } else {
+                                throw IllegalStateException("Login required")
+                            }
+                        }
+
+                        response.use {
                             responsePayload = response.body?.string()
                             if (!response.isSuccessful) {
                                 throw IOException(
@@ -115,8 +137,9 @@ class WhisperApiRecognizer(
         }
 
         if (!config.useOpenAiDirect) {
-            val token = AuthStore.getAccessToken(context)
-            if (token.isNullOrBlank()) {
+            val accessToken = AuthStore.getAccessToken(context)
+            val refreshToken = AuthStore.getRefreshToken(context)
+            if (accessToken.isNullOrBlank() && refreshToken.isNullOrBlank()) {
                 throw IllegalStateException("Login required")
             }
         }

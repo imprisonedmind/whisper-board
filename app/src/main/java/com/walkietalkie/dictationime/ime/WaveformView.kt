@@ -7,7 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import kotlin.math.PI
+import kotlin.math.max
 import kotlin.math.sin
 
 class WaveformView @JvmOverloads constructor(
@@ -24,13 +24,6 @@ class WaveformView @JvmOverloads constructor(
             invalidate()
         }
 
-    var intensity: Float = 0.5f
-        set(value) {
-            field = value.coerceIn(0.05f, 1.6f)
-            targetIntensity = field
-            invalidate()
-        }
-
     var waveColor: Int = Color.parseColor("#24C4B3")
         set(value) {
             field = value
@@ -38,42 +31,32 @@ class WaveformView @JvmOverloads constructor(
             invalidate()
         }
 
-    private val mainPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(2f)
-    }
-
-    private val secondaryPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        strokeWidth = dp(1.3f)
-    }
-
-    private val tertiaryPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val baselinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.STROKE
         strokeWidth = dp(1f)
     }
 
-    private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+    private val waveBarPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
     }
 
-    private var phase = 0f
-    private var targetIntensity = intensity
-    private var currentIntensity = intensity
-    private var targetSpeed = 0.05f
-    private var currentSpeed = 0.05f
-    private var targetTightness = 1f
-    private var currentTightness = 1f
+    private val historySize = 72
+    private val levelHistory = FloatArray(historySize) { 0.02f }
+    private var writeIndex = 0
+    private var levelPhase = 0f
+    private var renderMode = RenderMode.Idle
+    private var targetLevel = 0.03f
+    private var currentLevel = 0.03f
+    private var ambientBase = 0.12f
+    private var lastPushAt = 0L
 
     private val animator = ValueAnimator.ofFloat(0f, 1f).apply {
         duration = 16L
         repeatCount = ValueAnimator.INFINITE
         addUpdateListener {
-            val smoothing = if (isActive) 0.22f else 0.12f
-            currentIntensity = approach(currentIntensity, targetIntensity, smoothing)
-            currentSpeed = approach(currentSpeed, targetSpeed, smoothing)
-            currentTightness = approach(currentTightness, targetTightness, smoothing)
-            phase += currentSpeed
+            levelPhase += 0.11f
+            currentLevel = approach(currentLevel, targetLevel, if (isActive) 0.30f else 0.16f)
+            tickHistory()
             invalidate()
         }
     }
@@ -108,95 +91,92 @@ class WaveformView @JvmOverloads constructor(
         if (width <= 0f || height <= 0f) return
 
         val midY = height * 0.5f
-        if (!isActive) {
-            drawSine(canvas, mainPaint, midY, 3f * currentIntensity, 0.018f)
-            return
-        }
+        canvas.drawLine(0f, midY, width, midY, baselinePaint)
 
-        val amplitude = (height * 0.33f) * currentIntensity
-        drawSine(canvas, mainPaint, midY, amplitude, 0.018f)
-        drawSine(canvas, secondaryPaint, midY, amplitude * 0.72f, 0.028f)
-        drawSine(canvas, tertiaryPaint, midY, amplitude * 0.95f, 0.013f)
-
-        val barCount = 34
-        val barWidth = width / (barCount * 1.8f)
-        val totalBarWidth = barCount * barWidth
-        val gap = ((width - totalBarWidth) / (barCount + 1)).coerceAtLeast(1f)
+        val barWidth = dp(4f)
+        val gap = dp(3f)
+        val slot = barWidth + gap
+        val barCount = max(1, (width / slot).toInt())
+        val startX = width - (barCount * slot) + gap
+        val minHalfHeight = dp(1f)
+        val maxHalfHeight = height * 0.38f
 
         for (i in 0 until barCount) {
-            val envelope = sin((i.toFloat() / barCount) * PI).toFloat().coerceAtLeast(0f)
-            val wobblePhase = (i * 0.55f * currentTightness) + (phase * 2f)
-            val wobble = (sin(wobblePhase) * 0.5f + 0.5f).toFloat()
-            val barHeight = (height * 0.06f) + (height * 0.30f * wobble * envelope * currentIntensity)
-            val left = gap + i * (barWidth + gap)
-            val top = midY - barHeight / 2f
-            val right = left + barWidth
-            val bottom = midY + barHeight / 2f
-            canvas.drawRoundRect(left, top, right, bottom, dp(1.2f), dp(1.2f), barPaint)
+            val x = startX + (i * slot)
+            val historyIndex = ((writeIndex - (barCount - i) + historySize) % historySize)
+            val normalized = levelHistory[historyIndex].coerceIn(0f, 1f)
+            val halfHeight = minHalfHeight + normalized * maxHalfHeight
+            canvas.drawRoundRect(
+                x,
+                midY - halfHeight,
+                x + barWidth,
+                midY + halfHeight,
+                barWidth * 0.5f,
+                barWidth * 0.5f,
+                waveBarPaint
+            )
         }
     }
 
-    private fun drawSine(canvas: Canvas, paint: Paint, midY: Float, amplitude: Float, frequency: Float) {
-        val path = android.graphics.Path()
-        var x = 0f
-        val effectiveFrequency = frequency * currentTightness
-        while (x <= width.toFloat()) {
-            val y = midY + sin((x * effectiveFrequency) + phase).toFloat() * amplitude * envelope(x, width.toFloat())
-            if (x == 0f) {
-                path.moveTo(x, y)
-            } else {
-                path.lineTo(x, y)
+    private fun tickHistory() {
+        val now = System.currentTimeMillis()
+        if (now - lastPushAt < 24L) return
+        lastPushAt = now
+
+        val next = when (renderMode) {
+            RenderMode.Reactive -> {
+                targetLevel *= 0.965f
+                currentLevel
             }
-            x += 2f
-        }
-        canvas.drawPath(path, paint)
-    }
+            RenderMode.Ambient -> {
+                ambientBase + ((sin(levelPhase.toDouble()).toFloat() * 0.5f + 0.5f) * 0.09f)
+            }
+            RenderMode.Idle -> 0.02f
+        }.coerceIn(0f, 1f)
 
-    private fun envelope(x: Float, width: Float): Float {
-        val ratio = if (width == 0f) 0f else (x / width).coerceIn(0f, 1f)
-        return sin(ratio * PI).toFloat().coerceAtLeast(0.15f)
+        levelHistory[writeIndex] = next
+        writeIndex = (writeIndex + 1) % historySize
     }
 
     private fun updatePaintColors() {
-        mainPaint.color = applyAlpha(waveColor, 0.86f)
-        secondaryPaint.color = applyAlpha(waveColor, 0.45f)
-        tertiaryPaint.color = applyAlpha(waveColor, 0.25f)
-        barPaint.color = applyAlpha(waveColor, 0.28f)
+        baselinePaint.color = applyAlpha(waveColor, 0.28f)
+        waveBarPaint.color = applyAlpha(waveColor, 0.95f)
     }
 
     fun setAudioFeatures(rms: Float, zcr: Float) {
-        val rmsBoosted = (rms * 30.0f).coerceIn(0f, 1f)
-        val zcrBoosted = (zcr * 8.5f).coerceIn(0f, 1f)
-        val energy = (rmsBoosted * 0.9f + zcrBoosted * 0.1f).coerceIn(0f, 1f)
+        if (renderMode != RenderMode.Reactive) return
+        val rmsEnergy = (rms * 60f).coerceIn(0f, 1f)
+        val zcrEnergy = (zcr * 8.5f).coerceIn(0f, 1f)
+        val combined = (rmsEnergy * 0.95f + zcrEnergy * 0.05f).coerceIn(0f, 1f)
 
-        targetIntensity = lerp(0.28f, 1.5f, energy)
-        val pace = (energy * 0.7f + zcrBoosted * 0.3f).coerceIn(0f, 1f)
-        targetSpeed = lerp(0.06f, 0.3f, pace)
-        targetTightness = lerp(0.75f, 1.6f, zcrBoosted)
+        val floor = if (rms < 0.0012f) 0.03f else 0.085f
+        val candidate = lerp(floor, 1f, combined)
+        val attack = if (candidate > targetLevel) 0.86f else 0.30f
+        targetLevel = approach(targetLevel, candidate, attack)
 
-        if (rms < 0.002f) {
-            targetIntensity = 0.22f
-            targetSpeed = 0.05f
-            targetTightness = 0.9f
+        if (System.currentTimeMillis() - lastPushAt > 20L) {
+            levelHistory[writeIndex] = targetLevel
+            writeIndex = (writeIndex + 1) % historySize
+            lastPushAt = System.currentTimeMillis()
         }
     }
 
     fun setReactiveMode() {
-        targetIntensity = 0.22f
-        targetSpeed = 0.05f
-        targetTightness = 1.0f
+        renderMode = RenderMode.Reactive
+        targetLevel = 0.04f
+        currentLevel = 0.04f
     }
 
     fun setAmbientMode() {
-        targetIntensity = 0.35f
-        targetSpeed = 0.07f
-        targetTightness = 1.1f
+        renderMode = RenderMode.Ambient
+        ambientBase = 0.15f
+        targetLevel = ambientBase
     }
 
     fun setIdleMode() {
-        targetIntensity = 0.18f
-        targetSpeed = 0.02f
-        targetTightness = 0.9f
+        renderMode = RenderMode.Idle
+        targetLevel = 0.02f
+        currentLevel = 0.02f
     }
 
     private fun applyAlpha(color: Int, alphaFactor: Float): Int {
@@ -212,4 +192,10 @@ class WaveformView @JvmOverloads constructor(
 
     private fun dp(value: Float): Float =
         value * resources.displayMetrics.density
+
+    private enum class RenderMode {
+        Idle,
+        Reactive,
+        Ambient
+    }
 }

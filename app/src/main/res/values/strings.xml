@@ -101,7 +101,7 @@
     <string name="ime_transcription_failed">Transcription failed</string>
     <string name="ime_unknown_error">Something went wrong</string>
     <string name="ime_tap_to_start">Tap to Speak</string>
-    <string name="ime_tap_to_stop">Tap to Transcribe</string>
+    <string name="ime_tap_to_stop">Tap to Transcribe and Send</string>
     <string name="ime_preview_hint">Tap the mic to speak</string>
     <string name="ime_typing_hint">Type a message or switch to voice mode</string>
     <string name="ime_keyboard_mode">Keyboard</string>
