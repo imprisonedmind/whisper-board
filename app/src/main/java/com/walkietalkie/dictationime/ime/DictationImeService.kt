@@ -17,6 +17,7 @@ import com.walkietalkie.dictationime.audio.AndroidAudioCapture
 import com.walkietalkie.dictationime.audio.extractAudioFeatures
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
+import com.walkietalkie.dictationime.openai.OpenAiConfig
 import com.walkietalkie.dictationime.settings.CreditStoreActivity
 import com.walkietalkie.dictationime.settings.MainActivity
 import com.walkietalkie.dictationime.settings.SettingsStore
@@ -43,11 +44,15 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             if (SettingsStore.isOutOfCreditsKey(key)) {
                 applyOutOfCreditsMode()
             }
+            if (SettingsStore.isOpenSourceKey(key)) {
+                applyOpenSourceMode()
+            }
         }
 
     override fun onCreate() {
         super.onCreate()
         SettingsStore.registerListener(this, prefsListener)
+        applyOpenSourceMode()
         dictationController = DictationController(
             audioCapture = audioCapture,
             speechRecognizer = recognizer,
@@ -93,6 +98,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
         applyOutOfCreditsMode()
+        applyOpenSourceMode()
     }
 
     override fun onFinishInput() {
@@ -121,6 +127,10 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             dictationController.cancel()
             updateKeepScreenOn(false)
         }
+    }
+
+    private fun applyOpenSourceMode() {
+        OpenAiConfig.setOpenSourceOverride(SettingsStore.isOpenSourceMode(this))
     }
 
     private fun handleMicTap() {

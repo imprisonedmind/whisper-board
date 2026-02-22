@@ -21,6 +21,7 @@ import kotlinx.coroutines.launch
 class SettingsActivity : AppCompatActivity() {
     private lateinit var apiStatusText: TextView
     private lateinit var outOfCreditsSwitch: SwitchCompat
+    private lateinit var openSourceSwitch: SwitchCompat
 
     private val requestMicPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -33,6 +34,7 @@ class SettingsActivity : AppCompatActivity() {
 
         apiStatusText = findViewById(R.id.apiStatusText)
         outOfCreditsSwitch = findViewById(R.id.outOfCreditsSwitch)
+        openSourceSwitch = findViewById(R.id.openSourceSwitch)
         val grantPermissionButton: Button = findViewById(R.id.grantPermissionButton)
         val openImeSettingsButton: Button = findViewById(R.id.openImeSettingsButton)
         val openAppSettingsButton: Button = findViewById(R.id.openAppSettingsButton)
@@ -59,11 +61,20 @@ class SettingsActivity : AppCompatActivity() {
         outOfCreditsSwitch.setOnCheckedChangeListener { _, isChecked ->
             SettingsStore.setOutOfCreditsMode(this, isChecked)
         }
+
+        openSourceSwitch.isChecked = SettingsStore.isOpenSourceMode(this)
+        openSourceSwitch.setOnCheckedChangeListener { _, isChecked ->
+            SettingsStore.setOpenSourceMode(this, isChecked)
+            OpenAiConfig.setOpenSourceOverride(isChecked)
+            updateApiStatus()
+        }
     }
 
     override fun onResume() {
         super.onResume()
         updatePermissionButtonState()
+        openSourceSwitch.isChecked = SettingsStore.isOpenSourceMode(this)
+        OpenAiConfig.setOpenSourceOverride(openSourceSwitch.isChecked)
         lifecycleScope.launch {
             updateApiStatus()
         }

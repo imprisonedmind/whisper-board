@@ -3,8 +3,15 @@ package com.walkietalkie.dictationime.openai
 import com.walkietalkie.dictationime.BuildConfig
 
 object OpenAiConfig {
+    @Volatile
+    private var openSourceOverride: Boolean? = null
+
+    fun setOpenSourceOverride(enabled: Boolean?) {
+        openSourceOverride = enabled
+    }
+
     val useOpenAiDirect: Boolean
-        get() = BuildConfig.USE_OPENAI_DIRECT
+        get() = openSourceOverride ?: BuildConfig.USE_OPENAI_DIRECT
 
     val apiKey: String
         get() = if (useOpenAiDirect) BuildConfig.OPENAI_API_KEY else ""
