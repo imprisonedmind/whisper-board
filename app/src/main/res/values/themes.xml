@@ -1,5 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <style name="Theme.DictationIme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="fontFamily">@font/space_grotesk</item>
+        <item name="android:fontFamily">@font/space_grotesk</item>
         <item name="colorPrimary">@color/accent</item>
         <item name="colorPrimaryVariant">@color/accent_pressed</item>
         <item name="colorOnPrimary">@color/on_primary</item>
@@ -8,5 +10,9 @@
         <item name="colorSurfaceVariant">@color/surface_alt</item>
         <item name="colorOnSurfaceVariant">@color/ink</item>
         <item name="android:statusBarColor" tools:targetApi="l">@color/surface</item>
+    </style>
+
+    <style name="Widget.DictationIme.PrimaryButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

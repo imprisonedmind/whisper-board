@@ -45,6 +45,7 @@
     <string name="credit_price_300">$3</string>
     <string name="credit_price_500">$9</string>
     <string name="credit_price_1000">$18</string>
+    <string name="credit_price_1500">$27</string>
     <string name="credit_price_2500">$45</string>
     <string name="credit_buy_button_default">$18  Buy</string>
     <string name="credit_buy_button_format">%1$s  Buy</string>

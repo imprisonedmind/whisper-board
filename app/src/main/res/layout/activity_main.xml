@@ -184,6 +184,7 @@
                 android:background="@drawable/bg_primary_button"
                 android:backgroundTint="@null"
                 android:minHeight="48dp"
+                style="@style/Widget.DictationIme.PrimaryButton"
                 android:text="@string/credit_store_button"
                 android:textColor="@color/on_primary" />
         </LinearLayout>

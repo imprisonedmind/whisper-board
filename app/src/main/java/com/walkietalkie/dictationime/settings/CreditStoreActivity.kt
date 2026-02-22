@@ -46,6 +46,7 @@ class CreditStoreActivity : AppCompatActivity() {
         R.id.option290 to "pack_300",
         R.id.option439 to "pack_500",
         R.id.option1000 to "pack_1000",
+        R.id.option1500 to "pack_1500",
         R.id.option2500 to "pack_2500"
     )
     private val fallbackPriceByOptionId = mapOf(
@@ -53,6 +54,7 @@ class CreditStoreActivity : AppCompatActivity() {
         R.id.option290 to R.string.credit_price_300,
         R.id.option439 to R.string.credit_price_500,
         R.id.option1000 to R.string.credit_price_1000,
+        R.id.option1500 to R.string.credit_price_1500,
         R.id.option2500 to R.string.credit_price_2500
     )
     private val priceViewByPackId = mapOf(
@@ -60,6 +62,7 @@ class CreditStoreActivity : AppCompatActivity() {
         "pack_300" to R.id.price300,
         "pack_500" to R.id.price500,
         "pack_1000" to R.id.price1000,
+        "pack_1500" to R.id.price1500,
         "pack_2500" to R.id.price2500
     )
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,9 +81,10 @@ class CreditStoreActivity : AppCompatActivity() {
         val option290 = findViewById<View>(R.id.option290)
         val option439 = findViewById<View>(R.id.option439)
         val option1000 = findViewById<View>(R.id.option1000)
+        val option1500 = findViewById<View>(R.id.option1500)
         val option2500 = findViewById<View>(R.id.option2500)
 
-        val options = listOf(option149, option290, option439, option1000, option2500)
+        val options = listOf(option149, option290, option439, option1000, option1500, option2500)
         options.forEach { view ->
             view.setOnClickListener { selectOption(view) }
         }

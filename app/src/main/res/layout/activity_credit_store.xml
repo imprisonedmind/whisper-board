@@ -154,14 +154,15 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:background="@drawable/bg_credit_option"
-                android:gravity="center"
+                android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
@@ -174,6 +175,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
                         android:text="85"
                         android:textColor="@color/ink"
                         android:textSize="16sp"
@@ -182,9 +184,12 @@
 
                 <TextView
                     android:id="@+id/price150"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
                     android:text="@string/credit_price_150"
                     android:textColor="@color/ink_muted"
                     android:textSize="12sp" />
@@ -196,14 +201,15 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:background="@drawable/bg_credit_option"
-                android:gravity="center"
+                android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
@@ -216,6 +222,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
                         android:text="170"
                         android:textColor="@color/ink"
                         android:textSize="16sp"
@@ -224,9 +231,12 @@
 
                 <TextView
                     android:id="@+id/price300"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
                     android:text="@string/credit_price_300"
                     android:textColor="@color/ink_muted"
                     android:textSize="12sp" />
@@ -238,14 +248,15 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:background="@drawable/bg_credit_option"
-                android:gravity="center"
+                android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
@@ -258,6 +269,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
                         android:text="500"
                         android:textColor="@color/ink"
                         android:textSize="16sp"
@@ -266,9 +278,12 @@
 
                 <TextView
                     android:id="@+id/price500"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
                     android:text="@string/credit_price_500"
                     android:textColor="@color/ink_muted"
                     android:textSize="12sp" />
@@ -281,14 +296,15 @@
                 android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_credit_option"
-                android:gravity="center"
+                android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
@@ -301,6 +317,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
                         android:text="1000"
                         android:textColor="@color/ink"
                         android:textSize="16sp"
@@ -309,10 +326,61 @@
 
                 <TextView
                     android:id="@+id/price1000"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
                     android:text="@string/credit_price_1000"
+                    android:textColor="@color/ink_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/option1500"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_credit_option"
+                android:gravity="start"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="16dp"
+                        android:layout_height="16dp"
+                        android:layout_marginEnd="6dp"
+                        android:src="@drawable/ic_sparkle"
+                        android:tint="@color/accent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
+                        android:text="1500"
+                        android:textColor="@color/ink"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/price1500"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
+                    android:text="@string/credit_price_1500"
                     android:textColor="@color/ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
@@ -324,14 +392,15 @@
                 android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_credit_option"
-                android:gravity="center"
+                android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
+                    android:baselineAligned="false"
+                    android:gravity="start|center_vertical"
                     android:orientation="horizontal">
 
                     <ImageView
@@ -344,6 +413,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:includeFontPadding="false"
                         android:text="2500"
                         android:textColor="@color/ink"
                         android:textSize="16sp"
@@ -352,9 +422,12 @@
 
                 <TextView
                     android:id="@+id/price2500"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
+                    android:gravity="start"
+                    android:includeFontPadding="false"
+                    android:paddingStart="22dp"
                     android:text="@string/credit_price_2500"
                     android:textColor="@color/ink_muted"
                     android:textSize="12sp" />
@@ -369,6 +442,7 @@
             android:background="@drawable/bg_primary_button"
             android:backgroundTint="@null"
             android:minHeight="52dp"
+            style="@style/Widget.DictationIme.PrimaryButton"
             android:text="@string/credit_buy_button_default"
             android:textColor="@color/on_primary" />
 

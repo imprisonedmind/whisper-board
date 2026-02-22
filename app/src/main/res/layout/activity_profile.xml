@@ -67,6 +67,7 @@
                 android:minHeight="40dp"
                 android:paddingStart="18dp"
                 android:paddingEnd="18dp"
+                style="@style/Widget.DictationIme.PrimaryButton"
                 android:text="@string/profile_edit"
                 android:textAllCaps="false"
                 android:textColor="@color/on_primary" />
