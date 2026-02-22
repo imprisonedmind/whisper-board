@@ -51,6 +51,11 @@
     <string name="currency_label">Currency</string>
     <string name="currency_select_title">Select currency</string>
     <string name="currency_load_failed">Unable to load pricing. Showing defaults.</string>
+    <string name="out_of_credits_toggle_title">Out of credits mode</string>
+    <string name="out_of_credits_toggle_subtitle">Show a buy credits banner in the keyboard.</string>
+    <string name="out_of_credits_title">You’re out of credits</string>
+    <string name="out_of_credits_body">Transcription is paused. Tap below to purchase more minutes.</string>
+    <string name="out_of_credits_cta">Buy credits</string>
     <string name="credit_footer_links">Privacy Policy | Terms of Service | Questions</string>
     <string name="credit_disclaimer">Note: Purchased credits are valid for 2 years and cannot be refunded. All credits, purchased and earned, can only be used on Walkie Talkie and cannot be transferred or exchanged for cash.</string>
     <string name="device_settings_title">Device settings</string>

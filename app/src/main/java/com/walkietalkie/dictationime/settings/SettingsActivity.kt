@@ -9,6 +9,7 @@ import android.provider.Settings
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.appcompat.widget.SwitchCompat
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
     private lateinit var apiStatusText: TextView
+    private lateinit var outOfCreditsSwitch: SwitchCompat
 
     private val requestMicPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -30,6 +32,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.activity_settings)
 
         apiStatusText = findViewById(R.id.apiStatusText)
+        outOfCreditsSwitch = findViewById(R.id.outOfCreditsSwitch)
         val grantPermissionButton: Button = findViewById(R.id.grantPermissionButton)
         val openImeSettingsButton: Button = findViewById(R.id.openImeSettingsButton)
         val openAppSettingsButton: Button = findViewById(R.id.openAppSettingsButton)
@@ -50,6 +53,11 @@ class SettingsActivity : AppCompatActivity() {
                 Uri.parse("package:$packageName")
             )
             startActivity(appSettingsIntent)
+        }
+
+        outOfCreditsSwitch.isChecked = SettingsStore.isOutOfCreditsMode(this)
+        outOfCreditsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            SettingsStore.setOutOfCreditsMode(this, isChecked)
         }
     }
 

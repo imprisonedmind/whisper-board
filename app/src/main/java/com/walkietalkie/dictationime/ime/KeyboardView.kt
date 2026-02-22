@@ -30,6 +30,7 @@ class KeyboardView @JvmOverloads constructor(
     var onOpenSettings: (() -> Unit)? = null
     var onEraseTap: (() -> Unit)? = null
     var onSwitchKeyboard: (() -> Unit)? = null
+    var onBuyCreditsTap: (() -> Unit)? = null
 
     private val typeface = ResourcesCompat.getFont(context, R.font.space_grotesk) ?: Typeface.DEFAULT
 
@@ -44,6 +45,43 @@ class KeyboardView @JvmOverloads constructor(
     private val colorTranscribing = Color.parseColor("#31C48D")
 
     private val waveformView = WaveformView(context)
+    private val outOfCreditsContainer = LinearLayout(context).apply {
+        orientation = VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorPanel, strokeColor = colorKeyBorder)
+        setPadding(dp(16), dp(16), dp(16), dp(16))
+        visibility = GONE
+    }
+
+    private val outOfCreditsTitle = TextView(context).apply {
+        typeface = this@KeyboardView.typeface
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        setTextColor(colorTextPrimary)
+        text = context.getString(R.string.out_of_credits_title)
+    }
+
+    private val outOfCreditsBody = TextView(context).apply {
+        typeface = this@KeyboardView.typeface
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+        setTextColor(colorTextMuted)
+        gravity = Gravity.CENTER
+        text = context.getString(R.string.out_of_credits_body)
+    }
+
+    private val outOfCreditsButton = AppCompatButton(context).apply {
+        text = context.getString(R.string.out_of_credits_cta)
+        typeface = this@KeyboardView.typeface
+        textSize = 12f
+        letterSpacing = 0.08f
+        isAllCaps = true
+        setTextColor(Color.parseColor("#041314"))
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorAccent, strokeColor = colorAccent)
+        setPadding(dp(18), dp(10), dp(18), dp(10))
+        setOnClickListener {
+            performTapHaptic()
+            onBuyCreditsTap?.invoke()
+        }
+    }
 
     private val waveformContainer = FrameLayout(context).apply {
         background = roundedRectDrawable(radiusDp = 12, fillColor = colorPanel, strokeColor = colorKeyBorder)
@@ -124,6 +162,11 @@ class KeyboardView @JvmOverloads constructor(
 
     private val eraseRepeater = EraseRepeater()
     private var waveformMode = WaveformMode.Idle
+    private var outOfCreditsMode = false
+    private val controlsRow = LinearLayout(context).apply {
+        orientation = HORIZONTAL
+        gravity = Gravity.CENTER
+    }
 
     init {
         orientation = VERTICAL
@@ -131,6 +174,15 @@ class KeyboardView @JvmOverloads constructor(
         setBackgroundColor(colorSurface)
         setPadding(dp(12), dp(12), dp(12), dp(14))
 
+        outOfCreditsContainer.addView(outOfCreditsTitle, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        outOfCreditsContainer.addView(outOfCreditsBody, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(8)
+        })
+        outOfCreditsContainer.addView(outOfCreditsButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(14)
+        })
+
+        addView(outOfCreditsContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         addView(waveformContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
         addView(statusText, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
@@ -138,11 +190,6 @@ class KeyboardView @JvmOverloads constructor(
             bottomMargin = dp(14)
             gravity = Gravity.CENTER_HORIZONTAL
         })
-
-        val controlsRow = LinearLayout(context).apply {
-            orientation = HORIZONTAL
-            gravity = Gravity.CENTER
-        }
 
         val micStack = FrameLayout(context).apply {
             addView(micRing, FrameLayout.LayoutParams(dp(104), dp(104), Gravity.CENTER))
@@ -181,6 +228,10 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     fun render(state: DictationState) {
+        if (outOfCreditsMode) {
+            applyOutOfCreditsUi()
+            return
+        }
         when (state) {
             DictationState.Idle -> {
                 setMicAppearance(
@@ -237,6 +288,26 @@ class KeyboardView @JvmOverloads constructor(
                 statusText.setTextColor(colorRecording)
                 setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
             }
+        }
+    }
+
+    fun setOutOfCreditsMode(enabled: Boolean) {
+        if (outOfCreditsMode == enabled) return
+        outOfCreditsMode = enabled
+        applyOutOfCreditsUi()
+    }
+
+    private fun applyOutOfCreditsUi() {
+        if (outOfCreditsMode) {
+            outOfCreditsContainer.visibility = VISIBLE
+            statusText.visibility = GONE
+            setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+            controlsRow.visibility = GONE
+        } else {
+            outOfCreditsContainer.visibility = GONE
+            statusText.visibility = VISIBLE
+            controlsRow.visibility = VISIBLE
+            render(DictationState.Idle)
         }
     }
 

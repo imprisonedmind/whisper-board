@@ -17,7 +17,9 @@ import com.walkietalkie.dictationime.audio.AndroidAudioCapture
 import com.walkietalkie.dictationime.audio.extractAudioFeatures
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
+import com.walkietalkie.dictationime.settings.CreditStoreActivity
 import com.walkietalkie.dictationime.settings.MainActivity
+import com.walkietalkie.dictationime.settings.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -36,9 +38,16 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private var keyboardView: KeyboardView? = null
     private var pendingSend = false
     private var lastAudioUpdateMs = 0L
+    private val prefsListener =
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (SettingsStore.isOutOfCreditsKey(key)) {
+                applyOutOfCreditsMode()
+            }
+        }
 
     override fun onCreate() {
         super.onCreate()
+        SettingsStore.registerListener(this, prefsListener)
         dictationController = DictationController(
             audioCapture = audioCapture,
             speechRecognizer = recognizer,
@@ -73,10 +82,17 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             onOpenSettings = { openSettingsScreen() }
             onEraseTap = { performErase() }
             onSwitchKeyboard = { switchBackToKeyboard() }
+            onBuyCreditsTap = { openCreditStoreScreen() }
             render(dictationController.state)
         }
         keyboardView = view
+        applyOutOfCreditsMode()
         return view
+    }
+
+    override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
+        super.onStartInputView(info, restarting)
+        applyOutOfCreditsMode()
     }
 
     override fun onFinishInput() {
@@ -89,11 +105,22 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     override fun onDestroy() {
         super.onDestroy()
+        SettingsStore.unregisterListener(this, prefsListener)
         runBlocking {
             dictationController.close()
         }
         updateKeepScreenOn(false)
         cancel()
+    }
+
+    private fun applyOutOfCreditsMode() {
+        val enabled = SettingsStore.isOutOfCreditsMode(this)
+        keyboardView?.setOutOfCreditsMode(enabled)
+        if (enabled) {
+            pendingSend = false
+            dictationController.cancel()
+            updateKeepScreenOn(false)
+        }
     }
 
     private fun handleMicTap() {
@@ -167,6 +194,12 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     private fun openSettingsScreen() {
         val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
+
+    private fun openCreditStoreScreen() {
+        val intent = Intent(this, CreditStoreActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
