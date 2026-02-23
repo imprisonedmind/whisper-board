@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -28,6 +29,10 @@ class AppProfilesActivity : AppCompatActivity() {
     private lateinit var appsEmptyText: TextView
     private var appPromptDialog: Dialog? = null
     private var loadedApps: List<AppListItem> = emptyList()
+    private var installedApps: List<AppListItem> = emptyList()
+    private var defaultPrompt: String = ""
+    private var appPrompts: MutableMap<String, String> = mutableMapOf()
+    private var appLastUsedAt: MutableMap<String, Long> = mutableMapOf()
 
     private data class AppListItem(
         val packageName: String,
@@ -53,17 +58,87 @@ class AppProfilesActivity : AppCompatActivity() {
         loadApps()
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (loadedApps.isNotEmpty()) {
+            loadApps()
+        }
+    }
+
     private fun loadApps() {
         lifecycleScope.launch {
-            val apps = withContext(Dispatchers.Default) {
-                val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
-                val resolved = packageManager.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL)
-                toUniquePackageList(resolved, packageManager)
+            val cachedProfiles = AppProfilesStore.getCachedProfiles(this@AppProfilesActivity)
+            defaultPrompt = cachedProfiles.defaultPrompt
+            appPrompts = cachedProfiles.appPrompts.toMutableMap()
+            appLastUsedAt = cachedProfiles.appLastUsedAt.toMutableMap()
+            loadedApps = mergeKnownAndInstalledApps(emptyList(), cachedProfiles.knownAppPackages)
+            renderApps(loadedApps)
+
+            val apps = queryLauncherApps()
+
+            installedApps = apps
+            AppProfilesStore.cacheKnownAppsLocal(
+                this@AppProfilesActivity,
+                installedApps.map { it.packageName }
+            )
+            val localMerged = AppProfilesStore.getCachedProfiles(this@AppProfilesActivity)
+            loadedApps = mergeKnownAndInstalledApps(installedApps, localMerged.knownAppPackages)
+            renderApps(loadedApps)
+
+            runCatching {
+                AppProfilesStore.registerDiscoveredApps(
+                    this@AppProfilesActivity,
+                    localMerged.knownAppPackages.toList()
+                )
             }
 
-            loadedApps = apps
-            renderApps(apps)
+            runCatching {
+                AppProfilesStore.fetchProfiles(this@AppProfilesActivity)
+            }.onSuccess { remote ->
+                defaultPrompt = remote.defaultPrompt
+                appPrompts = remote.appPrompts.toMutableMap()
+                appLastUsedAt = remote.appLastUsedAt.toMutableMap()
+                val latestLocalKnown = AppProfilesStore
+                    .getCachedProfiles(this@AppProfilesActivity)
+                    .knownAppPackages
+                val mergedKnown = latestLocalKnown + remote.knownAppPackages + installedApps.map { it.packageName }
+                AppProfilesStore.cacheKnownAppsLocal(this@AppProfilesActivity, mergedKnown)
+                loadedApps = mergeKnownAndInstalledApps(installedApps, mergedKnown)
+                renderApps(loadedApps)
+            }.onFailure {
+                Toast.makeText(
+                    this@AppProfilesActivity,
+                    R.string.app_profiles_sync_failed,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
+    }
+
+    private suspend fun queryLauncherApps(): List<AppListItem> = withContext(Dispatchers.Default) {
+        val launcherIntent = Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)
+        val resolved = packageManager.queryIntentActivities(launcherIntent, PackageManager.MATCH_ALL)
+        toUniquePackageList(resolved, packageManager)
+    }
+
+    private fun mergeKnownAndInstalledApps(
+        installed: List<AppListItem>,
+        knownPackages: Set<String>
+    ): List<AppListItem> {
+        val byPackage = linkedMapOf<String, AppListItem>()
+        installed.forEach { item ->
+            byPackage[item.packageName] = item
+        }
+        knownPackages.forEach { packageName ->
+            if (!byPackage.containsKey(packageName)) {
+                byPackage[packageName] = AppListItem(
+                    packageName = packageName,
+                    label = packageName,
+                    icon = ContextCompat.getDrawable(this, R.drawable.ic_briefcase)
+                )
+            }
+        }
+        return byPackage.values.sortedBy { it.label.lowercase(Locale.US) }
     }
 
     private fun toUniquePackageList(
@@ -100,14 +175,14 @@ class AppProfilesActivity : AppCompatActivity() {
         defaultRow.findViewById<TextView>(R.id.appNameView).text = getString(R.string.app_profiles_default_name)
         defaultRow.findViewById<TextView>(R.id.appPackageView).text =
             getString(R.string.app_profiles_default_subtitle)
-        val defaultEnabled = AppProfilesStore.getDefaultPrompt(this).isNotBlank()
+        val defaultEnabled = defaultPrompt.isNotBlank()
         defaultRow.findViewById<TextView>(R.id.appProfileStatusView).text =
             getString(if (defaultEnabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
         defaultRow.setOnClickListener {
             showPromptDialog(
                 packageName = null,
                 profileName = getString(R.string.app_profiles_default_name),
-                existingPrompt = AppProfilesStore.getDefaultPrompt(this)
+                existingPrompt = defaultPrompt
             )
         }
         appsListContainer.addView(defaultRow)
@@ -118,19 +193,24 @@ class AppProfilesActivity : AppCompatActivity() {
             getString(R.string.app_profiles_count, apps.size)
         }
 
-        apps.forEach { app ->
+        val sortedApps = apps.sortedWith(
+            compareByDescending<AppListItem> { appLastUsedAt[it.packageName] ?: 0L }
+                .thenBy { it.label.lowercase(Locale.US) }
+        )
+
+        sortedApps.forEach { app ->
             val row = inflater.inflate(R.layout.item_app_profile_app, appsListContainer, false)
             row.findViewById<android.widget.ImageView>(R.id.appIconView).setImageDrawable(app.icon)
             row.findViewById<TextView>(R.id.appNameView).text = app.label
             row.findViewById<TextView>(R.id.appPackageView).text = app.packageName
-            val enabled = AppProfilesStore.getAppPrompt(this, app.packageName).isNotBlank()
+            val enabled = appPrompts[app.packageName].isNullOrBlank().not()
             row.findViewById<TextView>(R.id.appProfileStatusView).text =
                 getString(if (enabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
             row.setOnClickListener {
                 showPromptDialog(
                     packageName = app.packageName,
                     profileName = app.label,
-                    existingPrompt = AppProfilesStore.getAppPrompt(this, app.packageName)
+                    existingPrompt = appPrompts[app.packageName].orEmpty()
                 )
             }
             appsListContainer.addView(row)
@@ -175,13 +255,34 @@ class AppProfilesActivity : AppCompatActivity() {
         }
         submitButton.setOnClickListener {
             val prompt = input.text?.toString()?.trim().orEmpty()
-            if (packageName == null) {
-                AppProfilesStore.setDefaultPrompt(this, prompt)
-            } else {
-                AppProfilesStore.setAppPrompt(this, packageName, prompt)
+            submitButton.isEnabled = false
+            cancelButton.isEnabled = false
+            lifecycleScope.launch {
+                runCatching {
+                    if (packageName == null) {
+                        AppProfilesStore.setDefaultPrompt(this@AppProfilesActivity, prompt)
+                        defaultPrompt = prompt
+                    } else {
+                        AppProfilesStore.setAppPrompt(this@AppProfilesActivity, packageName, prompt)
+                        if (prompt.isBlank()) {
+                            appPrompts.remove(packageName)
+                        } else {
+                            appPrompts[packageName] = prompt
+                        }
+                    }
+                }.onSuccess {
+                    dialog.dismiss()
+                    renderApps(loadedApps)
+                }.onFailure {
+                    submitButton.isEnabled = true
+                    cancelButton.isEnabled = true
+                    Toast.makeText(
+                        this@AppProfilesActivity,
+                        R.string.app_profiles_save_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
-            dialog.dismiss()
-            renderApps(loadedApps)
         }
 
         dialog.setOnDismissListener {

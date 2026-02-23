@@ -23,6 +23,7 @@ import com.walkietalkie.dictationime.openai.OpenAiConfig
 import com.walkietalkie.dictationime.settings.CreditStoreActivity
 import com.walkietalkie.dictationime.settings.CreditStoreDataCache
 import com.walkietalkie.dictationime.settings.MainActivity
+import com.walkietalkie.dictationime.settings.AppProfilesStore
 import com.walkietalkie.dictationime.settings.SettingsStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -42,6 +43,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private var keyboardView: KeyboardView? = null
     private var pendingSend = false
     private var lastAudioUpdateMs = 0L
+    private val lastProfileTouchMs = mutableMapOf<String, Long>()
     private val prefsListener =
         android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
             if (SettingsStore.isOutOfCreditsKey(key)) {
@@ -108,6 +110,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        trackHostAppForProfiles(info)
         applyAuthMode()
         applyOutOfCreditsMode()
         applyOpenSourceMode()
@@ -149,6 +152,29 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private fun applyAuthMode() {
         val isSignedIn = AuthStore.isSignedIn(this)
         keyboardView?.setLoggedOutMode(!isSignedIn)
+    }
+
+    private fun trackHostAppForProfiles(info: EditorInfo?) {
+        val packageName = info?.packageName?.trim().orEmpty()
+        if (packageName.isBlank() || packageName == this.packageName) {
+            recognizer.currentAppPackage = null
+            return
+        }
+        recognizer.currentAppPackage = packageName
+        val now = System.currentTimeMillis()
+        val previousTouch = lastProfileTouchMs[packageName] ?: 0L
+        if (now - previousTouch < 30_000L) {
+            return
+        }
+        lastProfileTouchMs[packageName] = now
+
+        // Cache first so profile list updates immediately even if sync fails.
+        AppProfilesStore.cacheKnownAppsLocal(this, listOf(packageName))
+        launch {
+            runCatching {
+                AppProfilesStore.touchAppProfile(this@DictationImeService, packageName, now)
+            }
+        }
     }
 
     private fun handleMicTap() {

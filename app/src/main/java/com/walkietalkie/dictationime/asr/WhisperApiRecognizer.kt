@@ -29,6 +29,8 @@ class WhisperApiRecognizer(
 
     private val lock = Mutex()
     private var activeModelId: String? = null
+    @Volatile
+    var currentAppPackage: String? = null
 
     override suspend fun warmup(modelId: String): Result<Unit> {
         return lock.withLock {
@@ -61,6 +63,10 @@ class WhisperApiRecognizer(
                     if (!config.useOpenAiDirect) {
                         builder.addFormDataPart("duration_ms", durationMs.toString())
                         builder.addFormDataPart("device_id", AuthStore.getOrCreateDeviceId(context))
+                        currentAppPackage
+                            ?.trim()
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { builder.addFormDataPart("app_package", it) }
                     }
                     val requestBody = builder.build()
 
