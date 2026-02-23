@@ -11,6 +11,9 @@
     <color name="accent_soft">#BDD8FF</color>
     <color name="accent_glow">#E3EEFF</color>
     <color name="on_primary">#FFFFFF</color>
+    <color name="danger_fill">#A1303A</color>
+    <color name="danger_border">#F46B72</color>
+    <color name="danger_fill_pressed">#8E2B34</color>
 
     <color name="te_metal_light">#B8BDB6</color>
     <color name="te_metal_mid">#8C928C</color>

@@ -128,7 +128,7 @@ class TransactionHistoryActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                background = getDrawable(R.drawable.bg_history_row)
+                background = getDrawable(R.drawable.bg_card)
                 setPadding(dp(10), dp(9), dp(10), dp(9))
                 isClickable = true
                 isFocusable = true
@@ -153,7 +153,7 @@ class TransactionHistoryActivity : AppCompatActivity() {
 
             val durationGroup = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
+                gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
             }
             val divider = View(this).apply {
                 setBackgroundColor(getColor(R.color.border_subtle))
@@ -162,11 +162,16 @@ class TransactionHistoryActivity : AppCompatActivity() {
                 setTextColor(getColor(R.color.ink_muted))
                 textSize = 12f
                 text = formatRelativeTime(item.createdAtMs)
-                setPadding(dp(8), 0, 0, 0)
+                gravity = android.view.Gravity.END
             }
 
             durationGroup.addView(divider, LinearLayout.LayoutParams(dp(1), dp(20)))
-            durationGroup.addView(durationText)
+            durationGroup.addView(
+                durationText,
+                LinearLayout.LayoutParams(dp(27), LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                    marginStart = dp(5)
+                }
+            )
             row.addView(
                 durationGroup,
                 LinearLayout.LayoutParams(

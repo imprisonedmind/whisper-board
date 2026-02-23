@@ -53,7 +53,9 @@ class MainActivity : AppCompatActivity() {
         val transcript: String,
         val durationSeconds: Int,
         val createdAtMs: Long,
-        val creditsUsedMinutes: Int
+        val creditsUsedMinutes: Int,
+        val isInaccurate: Boolean,
+        val inaccurateReason: String?
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -212,7 +214,11 @@ class MainActivity : AppCompatActivity() {
                             transcript = item.optString("transcript", "").trim(),
                             durationSeconds = item.optInt("durationSeconds", 0).coerceAtLeast(0),
                             createdAtMs = item.optLong("createdAt", 0L),
-                            creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0)
+                            creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0),
+                            isInaccurate = item.optBoolean("isInaccurate", false),
+                            inaccurateReason = item.optString("inaccurateReason", "").let { value ->
+                                if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
+                            }
                         )
                     }
                 }
@@ -256,7 +262,11 @@ class MainActivity : AppCompatActivity() {
                             transcript = item.optString("transcript", "").trim(),
                             durationSeconds = item.optInt("durationSeconds", 0).coerceAtLeast(0),
                             createdAtMs = item.optLong("createdAtMs", 0L),
-                            creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0)
+                            creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0),
+                            isInaccurate = item.optBoolean("isInaccurate", false),
+                            inaccurateReason = item.optString("inaccurateReason", "").let { value ->
+                                if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
+                            }
                         )
                     )
                 }
@@ -276,6 +286,8 @@ class MainActivity : AppCompatActivity() {
                     .put("durationSeconds", item.durationSeconds)
                     .put("createdAtMs", item.createdAtMs)
                     .put("creditsUsedMinutes", item.creditsUsedMinutes)
+                    .put("isInaccurate", item.isInaccurate)
+                    .put("inaccurateReason", item.inaccurateReason)
             )
         }
         getSharedPreferences(DASHBOARD_PREFS, MODE_PRIVATE)
@@ -296,7 +308,7 @@ class MainActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                background = getDrawable(R.drawable.bg_history_row)
+                background = getDrawable(R.drawable.bg_card)
                 setPadding(dp(10), dp(9), dp(10), dp(9))
                 isClickable = true
                 isFocusable = true
@@ -305,6 +317,7 @@ class MainActivity : AppCompatActivity() {
             val transcriptText = TextView(this).apply {
                 setTextColor(getColor(R.color.ink))
                 textSize = 13f
+                minLines = 2
                 maxLines = 2
                 ellipsize = TextUtils.TruncateAt.END
                 text = if (item.transcript.isBlank()) "(No transcript text)" else item.transcript
@@ -319,7 +332,7 @@ class MainActivity : AppCompatActivity() {
 
             val durationGroup = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
-                gravity = android.view.Gravity.CENTER_VERTICAL
+                gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
             }
             val divider = View(this).apply {
                 setBackgroundColor(getColor(R.color.border_subtle))
@@ -328,14 +341,19 @@ class MainActivity : AppCompatActivity() {
                 setTextColor(getColor(R.color.ink_muted))
                 textSize = 12f
                 text = formatDuration(item.durationSeconds)
-                setPadding(dp(8), 0, 0, 0)
+                gravity = android.view.Gravity.END
             }
 
             durationGroup.addView(
                 divider,
                 LinearLayout.LayoutParams(dp(1), dp(20))
             )
-            durationGroup.addView(durationText)
+            durationGroup.addView(
+                durationText,
+                LinearLayout.LayoutParams(dp(27), LinearLayout.LayoutParams.WRAP_CONTENT).apply {
+                    marginStart = dp(5)
+                }
+            )
             row.addView(
                 durationGroup,
                 LinearLayout.LayoutParams(
@@ -350,6 +368,8 @@ class MainActivity : AppCompatActivity() {
                     .putExtra(TranscriptionDetailActivity.EXTRA_DURATION_SECONDS, item.durationSeconds)
                     .putExtra(TranscriptionDetailActivity.EXTRA_CREDITS_USED_MINUTES, item.creditsUsedMinutes)
                     .putExtra(TranscriptionDetailActivity.EXTRA_CREATED_AT_MS, item.createdAtMs)
+                    .putExtra(TranscriptionDetailActivity.EXTRA_IS_INACCURATE, item.isInaccurate)
+                    .putExtra(TranscriptionDetailActivity.EXTRA_INACCURATE_REASON, item.inaccurateReason)
                     .putExtra(
                         TranscriptionDetailActivity.EXTRA_CREATED_AT_LABEL,
                         formatAbsoluteTime(item.createdAtMs)
