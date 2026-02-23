@@ -12,25 +12,19 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.R
-import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
 class TransactionHistoryActivity : AppCompatActivity() {
-    private val httpClient = OkHttpClient()
     private lateinit var historyListContainer: LinearLayout
     private lateinit var historyEmptyText: TextView
+    private var hasRenderedCache = false
 
-    private data class PurchaseHistoryItem(
+    private data class PurchaseHistoryRow(
         val packId: String,
         val minutes: Int,
         val amount: String,
@@ -52,6 +46,23 @@ class TransactionHistoryActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.backButton).setOnClickListener { finish() }
         historyListContainer = findViewById(R.id.historyListContainer)
         historyEmptyText = findViewById(R.id.historyEmptyText)
+
+        val cached = TransactionHistoryDataCache.getCachedPurchases(this)
+        if (cached != null) {
+            hasRenderedCache = true
+            renderPurchases(
+                cached.map {
+                    PurchaseHistoryRow(
+                        packId = it.packId,
+                        minutes = it.minutes,
+                        amount = it.amount,
+                        currency = it.currency,
+                        providerRef = it.providerRef,
+                        createdAtMs = it.createdAtMs
+                    )
+                }
+            )
+        }
     }
 
     override fun onResume() {
@@ -65,51 +76,47 @@ class TransactionHistoryActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val token = AuthSessionManager.getValidAccessToken(this@TransactionHistoryActivity)
-                if (token.isNullOrBlank()) {
+                if (!AuthStore.isSignedIn(this@TransactionHistoryActivity)) {
                     AuthStore.clearSession(this@TransactionHistoryActivity)
                     startActivity(Intent(this@TransactionHistoryActivity, LoginEmailActivity::class.java))
                     finish()
                     return@launch
                 }
-                val request = Request.Builder()
-                    .url("$baseUrl/credits/purchases")
-                    .header("Authorization", "Bearer $token")
-                    .build()
-                val body = withContext(Dispatchers.IO) {
-                    httpClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) throw IllegalStateException("Purchases fetch failed: ${response.code}")
-                        response.body?.string().orEmpty()
-                    }
+                val fetched = TransactionHistoryDataCache.fetchAndCachePurchases(this@TransactionHistoryActivity, baseUrl)
+                if (fetched != null) {
+                    renderPurchases(
+                        fetched.map {
+                            PurchaseHistoryRow(
+                                packId = it.packId,
+                                minutes = it.minutes,
+                                amount = it.amount,
+                                currency = it.currency,
+                                providerRef = it.providerRef,
+                                createdAtMs = it.createdAtMs
+                            )
+                        }
+                    )
+                } else if (!hasRenderedCache) {
+                    Toast.makeText(
+                        this@TransactionHistoryActivity,
+                        R.string.history_load_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-                val json = JSONObject(body)
-                val purchases = json.optJSONArray("purchases")
-                val items = mutableListOf<PurchaseHistoryItem>()
-                if (purchases != null) {
-                    for (i in 0 until purchases.length()) {
-                        val item = purchases.getJSONObject(i)
-                        items += PurchaseHistoryItem(
-                            packId = item.optString("packId", ""),
-                            minutes = item.optInt("minutes", 0).coerceAtLeast(0),
-                            amount = item.optString("amount", "0"),
-                            currency = item.optString("currency", "USD"),
-                            providerRef = item.optString("providerRef", ""),
-                            createdAtMs = item.optLong("createdAt", 0L)
-                        )
-                    }
-                }
-                renderPurchases(items)
             } catch (_: Exception) {
-                Toast.makeText(
-                    this@TransactionHistoryActivity,
-                    R.string.history_load_failed,
-                    Toast.LENGTH_SHORT
-                ).show()
+                if (!hasRenderedCache) {
+                    Toast.makeText(
+                        this@TransactionHistoryActivity,
+                        R.string.history_load_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
 
-    private fun renderPurchases(items: List<PurchaseHistoryItem>) {
+    private fun renderPurchases(items: List<PurchaseHistoryRow>) {
+        hasRenderedCache = true
         historyListContainer.removeAllViews()
         if (items.isEmpty()) {
             historyEmptyText.visibility = View.VISIBLE

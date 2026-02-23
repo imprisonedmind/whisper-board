@@ -41,6 +41,9 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.transactionHistoryRow).setOnClickListener {
+            lifecycleScope.launch {
+                TransactionHistoryDataCache.prefetch(this@ProfileActivity)
+            }
             startActivity(Intent(this, TransactionHistoryActivity::class.java))
         }
 
