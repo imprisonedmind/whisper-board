@@ -42,6 +42,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".settings.AppProfilesActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".settings.CreditStoreActivity"
             android:exported="false" />
 
