@@ -15,6 +15,8 @@ import androidx.core.content.ContextCompat
 import com.walkietalkie.dictationime.asr.WhisperApiRecognizer
 import com.walkietalkie.dictationime.audio.AndroidAudioCapture
 import com.walkietalkie.dictationime.audio.extractAudioFeatures
+import com.walkietalkie.dictationime.auth.AuthStore
+import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
 import com.walkietalkie.dictationime.openai.OpenAiConfig
@@ -49,10 +51,15 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
                 applyOpenSourceMode()
             }
         }
+    private val authListener =
+        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+            applyAuthMode()
+        }
 
     override fun onCreate() {
         super.onCreate()
         SettingsStore.registerListener(this, prefsListener)
+        AuthStore.registerListener(this, authListener)
         applyOpenSourceMode()
         dictationController = DictationController(
             audioCapture = audioCapture,
@@ -90,15 +97,18 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             onCancelTap = { handleCancelTap() }
             onSwitchKeyboard = { switchBackToKeyboard() }
             onBuyCreditsTap = { openCreditStoreScreen() }
+            onLoginTap = { openLoginScreen() }
             render(dictationController.state)
         }
         keyboardView = view
+        applyAuthMode()
         applyOutOfCreditsMode()
         return view
     }
 
     override fun onStartInputView(info: EditorInfo?, restarting: Boolean) {
         super.onStartInputView(info, restarting)
+        applyAuthMode()
         applyOutOfCreditsMode()
         applyOpenSourceMode()
     }
@@ -114,6 +124,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     override fun onDestroy() {
         super.onDestroy()
         SettingsStore.unregisterListener(this, prefsListener)
+        AuthStore.unregisterListener(this, authListener)
         runBlocking {
             dictationController.close()
         }
@@ -133,6 +144,11 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     private fun applyOpenSourceMode() {
         OpenAiConfig.setOpenSourceOverride(SettingsStore.isOpenSourceMode(this))
+    }
+
+    private fun applyAuthMode() {
+        val isSignedIn = AuthStore.isSignedIn(this)
+        keyboardView?.setLoggedOutMode(!isSignedIn)
     }
 
     private fun handleMicTap() {
@@ -214,6 +230,12 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     private fun openSettingsScreen() {
         val intent = Intent(this, MainActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        startActivity(intent)
+    }
+
+    private fun openLoginScreen() {
+        val intent = Intent(this, LoginEmailActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }

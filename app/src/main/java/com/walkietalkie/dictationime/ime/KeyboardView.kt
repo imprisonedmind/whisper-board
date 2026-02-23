@@ -32,6 +32,7 @@ class KeyboardView @JvmOverloads constructor(
     var onCancelTap: (() -> Unit)? = null
     var onSwitchKeyboard: (() -> Unit)? = null
     var onBuyCreditsTap: (() -> Unit)? = null
+    var onLoginTap: (() -> Unit)? = null
 
     private val typeface = ResourcesCompat.getFont(context, R.font.space_grotesk) ?: Typeface.DEFAULT
 
@@ -50,6 +51,13 @@ class KeyboardView @JvmOverloads constructor(
 
     private val waveformView = WaveformView(context)
     private val outOfCreditsContainer = LinearLayout(context).apply {
+        orientation = VERTICAL
+        gravity = Gravity.CENTER_HORIZONTAL
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorPanel, strokeColor = colorKeyBorder)
+        setPadding(dp(16), dp(16), dp(16), dp(16))
+        visibility = GONE
+    }
+    private val loggedOutContainer = LinearLayout(context).apply {
         orientation = VERTICAL
         gravity = Gravity.CENTER_HORIZONTAL
         background = roundedRectDrawable(radiusDp = 16, fillColor = colorPanel, strokeColor = colorKeyBorder)
@@ -84,6 +92,35 @@ class KeyboardView @JvmOverloads constructor(
         setOnClickListener {
             performTapHaptic()
             onBuyCreditsTap?.invoke()
+        }
+    }
+    private val loggedOutTitle = TextView(context).apply {
+        typeface = this@KeyboardView.typeface
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
+        setTextColor(colorTextPrimary)
+        text = context.getString(R.string.logged_out_title)
+    }
+
+    private val loggedOutBody = TextView(context).apply {
+        typeface = this@KeyboardView.typeface
+        setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+        setTextColor(colorTextMuted)
+        gravity = Gravity.CENTER
+        text = context.getString(R.string.logged_out_body)
+    }
+
+    private val loggedOutButton = AppCompatButton(context).apply {
+        text = context.getString(R.string.logged_out_cta)
+        typeface = this@KeyboardView.typeface
+        textSize = 12f
+        letterSpacing = 0.08f
+        isAllCaps = true
+        setTextColor(Color.parseColor("#041314"))
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorAccent, strokeColor = colorAccent)
+        setPadding(dp(18), dp(10), dp(18), dp(10))
+        setOnClickListener {
+            performTapHaptic()
+            onLoginTap?.invoke()
         }
     }
 
@@ -166,6 +203,7 @@ class KeyboardView @JvmOverloads constructor(
 
     private val eraseRepeater = EraseRepeater()
     private var waveformMode = WaveformMode.Idle
+    private var loggedOutMode = false
     private var outOfCreditsMode = false
     private var backspaceMode = BackspaceMode.Erase
     private val controlsRow = LinearLayout(context).apply {
@@ -186,7 +224,15 @@ class KeyboardView @JvmOverloads constructor(
         outOfCreditsContainer.addView(outOfCreditsButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
             topMargin = dp(14)
         })
+        loggedOutContainer.addView(loggedOutTitle, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT))
+        loggedOutContainer.addView(loggedOutBody, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(8)
+        })
+        loggedOutContainer.addView(loggedOutButton, LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT).apply {
+            topMargin = dp(14)
+        })
 
+        addView(loggedOutContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         addView(outOfCreditsContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
         addView(waveformContainer, LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
 
@@ -240,6 +286,10 @@ class KeyboardView @JvmOverloads constructor(
     }
 
     fun render(state: DictationState) {
+        if (loggedOutMode) {
+            applyLoggedOutUi()
+            return
+        }
         if (outOfCreditsMode) {
             applyOutOfCreditsUi()
             return
@@ -313,8 +363,19 @@ class KeyboardView @JvmOverloads constructor(
         applyOutOfCreditsUi()
     }
 
+    fun setLoggedOutMode(enabled: Boolean) {
+        if (loggedOutMode == enabled) return
+        loggedOutMode = enabled
+        applyLoggedOutUi()
+    }
+
     private fun applyOutOfCreditsUi() {
+        if (loggedOutMode) {
+            applyLoggedOutUi()
+            return
+        }
         if (outOfCreditsMode) {
+            loggedOutContainer.visibility = GONE
             outOfCreditsContainer.visibility = VISIBLE
             statusText.visibility = GONE
             setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
@@ -323,6 +384,19 @@ class KeyboardView @JvmOverloads constructor(
             outOfCreditsContainer.visibility = GONE
             statusText.visibility = VISIBLE
             controlsRow.visibility = VISIBLE
+            render(DictationState.Idle)
+        }
+    }
+
+    private fun applyLoggedOutUi() {
+        if (loggedOutMode) {
+            loggedOutContainer.visibility = VISIBLE
+            outOfCreditsContainer.visibility = GONE
+            statusText.visibility = GONE
+            controlsRow.visibility = GONE
+            setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+        } else {
+            loggedOutContainer.visibility = GONE
             render(DictationState.Idle)
         }
     }

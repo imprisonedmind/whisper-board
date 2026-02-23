@@ -12,11 +12,14 @@
     <string name="profile_initials">WT</string>
     <string name="profile_section_title">Account</string>
     <string name="profile_name_placeholder">Walkie User</string>
+    <string name="profile_verified_status">Verified</string>
+    <string name="profile_unverified_status">Not verified</string>
     <string name="profile_email_placeholder">hello@walkietalkie.app</string>
     <string name="profile_actions_title">Manage</string>
     <string name="profile_open_settings">Device settings</string>
     <string name="profile_open_credits">Credit store</string>
     <string name="profile_edit">Edit profile</string>
+    <string name="profile_logout">Log out</string>
     <string name="profile_learn_section">Learn for less</string>
     <string name="profile_refer_friend_title">Refer a friend</string>
     <string name="profile_refer_friend_subtitle">You both get extra credits.</string>
@@ -73,6 +76,9 @@
     <string name="out_of_credits_title">You’re out of credits</string>
     <string name="out_of_credits_body">Transcription is paused. Tap below to purchase more minutes.</string>
     <string name="out_of_credits_cta">Buy credits</string>
+    <string name="logged_out_title">Sign in to use dictation</string>
+    <string name="logged_out_body">You are logged out. Sign in to continue transcribing.</string>
+    <string name="logged_out_cta">Log in</string>
     <string name="open_source_toggle_title">Open source mode</string>
     <string name="open_source_toggle_subtitle">Use your own OpenAI key and connect directly.</string>
     <string name="credit_footer_links">Privacy Policy | Terms of Service | Questions</string>

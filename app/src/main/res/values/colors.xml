@@ -6,10 +6,10 @@
     <color name="ink">#1E2628</color>
     <color name="ink_muted">#5D6561</color>
     <color name="border_subtle">#D6CDBE</color>
-    <color name="accent">#3A6FCE</color>
-    <color name="accent_pressed">#2B55A0</color>
-    <color name="accent_soft">#A9C1EE</color>
-    <color name="accent_glow">#DCE7FB</color>
+    <color name="accent">#4B8DFF</color>
+    <color name="accent_pressed">#2E6EDB</color>
+    <color name="accent_soft">#BDD8FF</color>
+    <color name="accent_glow">#E3EEFF</color>
     <color name="on_primary">#FFFFFF</color>
 
     <color name="te_metal_light">#B8BDB6</color>

@@ -57,20 +57,14 @@
                 android:textSize="20sp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/editProfileButton"
+            <TextView
+                android:id="@+id/profileVerificationStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_primary_button"
-                android:backgroundTint="@null"
-                android:minHeight="40dp"
-                android:paddingStart="18dp"
-                android:paddingEnd="18dp"
-                style="@style/Widget.DictationIme.PrimaryButton"
-                android:text="@string/profile_edit"
-                android:textAllCaps="false"
-                android:textColor="@color/on_primary" />
+                android:layout_marginTop="8dp"
+                android:text="@string/profile_verified_status"
+                android:textColor="@color/ink_muted"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <TextView
@@ -175,5 +169,18 @@
                 android:layout_height="20dp"
                 android:src="@drawable/ic_chevron_right" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/logoutButton"
+            style="@style/Widget.DictationIme.PrimaryButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:background="@drawable/bg_primary_button"
+            android:backgroundTint="@null"
+            android:minHeight="48dp"
+            android:text="@string/profile_logout"
+            android:textAllCaps="false"
+            android:textColor="@color/on_primary" />
     </LinearLayout>
 </ScrollView>

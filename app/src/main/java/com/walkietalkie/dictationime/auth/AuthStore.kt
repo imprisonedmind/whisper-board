@@ -76,4 +76,18 @@ object AuthStore {
         prefs(context).edit().putString(KEY_DEVICE_ID, newId).apply()
         return newId
     }
+
+    fun registerListener(
+        context: Context,
+        listener: SharedPreferences.OnSharedPreferenceChangeListener
+    ) {
+        prefs(context).registerOnSharedPreferenceChangeListener(listener)
+    }
+
+    fun unregisterListener(
+        context: Context,
+        listener: SharedPreferences.OnSharedPreferenceChangeListener
+    ) {
+        prefs(context).unregisterOnSharedPreferenceChangeListener(listener)
+    }
 }
