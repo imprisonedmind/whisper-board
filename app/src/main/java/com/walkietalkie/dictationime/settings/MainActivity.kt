@@ -308,7 +308,8 @@ class MainActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                background = getDrawable(R.drawable.bg_card)
+                background =
+                    getDrawable(if (item.isInaccurate) R.drawable.bg_card_inaccurate else R.drawable.bg_card)
                 setPadding(dp(10), dp(9), dp(10), dp(9))
                 isClickable = true
                 isFocusable = true
