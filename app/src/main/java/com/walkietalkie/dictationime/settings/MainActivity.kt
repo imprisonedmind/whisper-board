@@ -32,6 +32,11 @@ import java.util.Locale
 class MainActivity : AppCompatActivity() {
     private companion object {
         const val BUY_PROMPT_THRESHOLD_RATIO = 0.5f
+        const val DASHBOARD_PREFS = "home_dashboard_cache"
+        const val KEY_HAS_CREDITS = "has_credits"
+        const val KEY_MINUTES_REMAINING = "minutes_remaining"
+        const val KEY_USAGE_WEEK_MINUTES = "usage_week_minutes"
+        const val KEY_HISTORY_JSON = "history_json"
     }
 
     private val httpClient = OkHttpClient()
@@ -73,8 +78,14 @@ class MainActivity : AppCompatActivity() {
         creditsBalanceText = findViewById(R.id.creditsBalanceText)
         creditsUsageValue = findViewById(R.id.creditsUsageValue)
 
-        applyCreditsState(0, 0)
-        renderHistory(emptyList())
+        val appliedCreditsCache = applyCachedCredits()
+        val appliedHistoryCache = applyCachedHistory()
+        if (!appliedCreditsCache) {
+            applyCreditsState(0, 0)
+        }
+        if (!appliedHistoryCache) {
+            renderHistory(emptyList())
+        }
 
         profileButton.setOnClickListener {
             startActivity(Intent(this, ProfileActivity::class.java))
@@ -138,6 +149,7 @@ class MainActivity : AppCompatActivity() {
                 val usageMinutes = json.optInt("usageThisWeekMinutes", 0)
 
                 applyCreditsState(minutesRemaining, usageMinutes)
+                cacheCredits(minutesRemaining, usageMinutes)
             } catch (_: Exception) {
                 // Keep existing UI values on failure.
             }
@@ -200,10 +212,71 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 renderHistory(items)
+                cacheHistory(items)
             } catch (_: Exception) {
                 // Keep existing history UI on failure.
             }
         }
+    }
+
+    private fun applyCachedCredits(): Boolean {
+        val prefs = getSharedPreferences(DASHBOARD_PREFS, MODE_PRIVATE)
+        if (!prefs.getBoolean(KEY_HAS_CREDITS, false)) return false
+        val minutesRemaining = prefs.getInt(KEY_MINUTES_REMAINING, 0).coerceAtLeast(0)
+        val usageWeekMinutes = prefs.getInt(KEY_USAGE_WEEK_MINUTES, 0).coerceAtLeast(0)
+        applyCreditsState(minutesRemaining, usageWeekMinutes)
+        return true
+    }
+
+    private fun cacheCredits(minutesRemaining: Int, usageWeekMinutes: Int) {
+        getSharedPreferences(DASHBOARD_PREFS, MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_HAS_CREDITS, true)
+            .putInt(KEY_MINUTES_REMAINING, minutesRemaining.coerceAtLeast(0))
+            .putInt(KEY_USAGE_WEEK_MINUTES, usageWeekMinutes.coerceAtLeast(0))
+            .apply()
+    }
+
+    private fun applyCachedHistory(): Boolean {
+        val prefs = getSharedPreferences(DASHBOARD_PREFS, MODE_PRIVATE)
+        val raw = prefs.getString(KEY_HISTORY_JSON, null) ?: return false
+        val items = runCatching {
+            val array = org.json.JSONArray(raw)
+            buildList {
+                for (i in 0 until array.length()) {
+                    val item = array.getJSONObject(i)
+                    add(
+                        UsageHistoryItem(
+                            requestId = item.optString("requestId", ""),
+                            transcript = item.optString("transcript", "").trim(),
+                            durationSeconds = item.optInt("durationSeconds", 0).coerceAtLeast(0),
+                            createdAtMs = item.optLong("createdAtMs", 0L),
+                            creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0)
+                        )
+                    )
+                }
+            }
+        }.getOrDefault(emptyList())
+        renderHistory(items)
+        return true
+    }
+
+    private fun cacheHistory(items: List<UsageHistoryItem>) {
+        val array = org.json.JSONArray()
+        items.forEach { item ->
+            array.put(
+                org.json.JSONObject()
+                    .put("requestId", item.requestId)
+                    .put("transcript", item.transcript)
+                    .put("durationSeconds", item.durationSeconds)
+                    .put("createdAtMs", item.createdAtMs)
+                    .put("creditsUsedMinutes", item.creditsUsedMinutes)
+            )
+        }
+        getSharedPreferences(DASHBOARD_PREFS, MODE_PRIVATE)
+            .edit()
+            .putString(KEY_HISTORY_JSON, array.toString())
+            .apply()
     }
 
     private fun renderHistory(items: List<UsageHistoryItem>) {
