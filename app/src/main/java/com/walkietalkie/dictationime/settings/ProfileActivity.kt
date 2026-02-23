@@ -40,6 +40,10 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.transactionHistoryRow).setOnClickListener {
+            startActivity(Intent(this, TransactionHistoryActivity::class.java))
+        }
+
         findViewById<LinearLayout>(R.id.creditStoreRow).setOnClickListener {
             lifecycleScope.launch {
                 CreditStoreDataCache.prefetch(this@ProfileActivity)
