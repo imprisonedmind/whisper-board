@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/creditStoreScroll"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home"
-    android:fitsSystemWindows="true">
+    android:background="@drawable/bg_home">
+
+    <ScrollView
+        android:id="@+id/creditStoreScroll"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -470,4 +474,20 @@
             android:textSize="12sp" />
 
     </LinearLayout>
-</ScrollView>
+    </ScrollView>
+
+    <FrameLayout
+        android:id="@+id/loadingContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/loadingSpinner"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:indeterminate="true" />
+    </FrameLayout>
+
+</FrameLayout>

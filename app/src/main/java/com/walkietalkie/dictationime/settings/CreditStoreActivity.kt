@@ -1,9 +1,8 @@
 package com.walkietalkie.dictationime.settings
 
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.content.Intent
-import java.net.URLEncoder
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -13,17 +12,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.BuildConfig
+import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.json.JSONObject
+import java.net.URLEncoder
 
 class CreditStoreActivity : AppCompatActivity() {
     private data class CurrencyOption(
@@ -38,8 +33,13 @@ class CreditStoreActivity : AppCompatActivity() {
     private lateinit var currencyCode: TextView
     private lateinit var currencyName: TextView
     private lateinit var totalCreditsValue: TextView
-    private val httpClient = OkHttpClient()
+    private lateinit var scrollView: View
+    private lateinit var loadingContainer: View
     private var selectedCurrency = "USD"
+    private var hasResumedOnce = false
+    private var blockingInitialLoad = false
+    private var waitingInitialLoads = 0
+
     private val currencyOptions = listOf(
         CurrencyOption("USD", "United States Dollar", "🇺🇸"),
         CurrencyOption("ZAR", "South African Rand", "🇿🇦"),
@@ -71,6 +71,7 @@ class CreditStoreActivity : AppCompatActivity() {
         "pack_1500" to R.id.price1500,
         "pack_2500" to R.id.price2500
     )
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -88,57 +89,80 @@ class CreditStoreActivity : AppCompatActivity() {
         currencyCode = findViewById(R.id.currencyCode)
         currencyName = findViewById(R.id.currencyName)
         totalCreditsValue = findViewById(R.id.totalCreditsValue)
+        scrollView = findViewById(R.id.creditStoreScroll)
+        loadingContainer = findViewById(R.id.loadingContainer)
+
         updateCurrencyRow()
         findViewById<View>(R.id.currencyRow).setOnClickListener { showCurrencyPicker() }
 
-        val option149 = findViewById<View>(R.id.option149)
-        val option290 = findViewById<View>(R.id.option290)
-        val option439 = findViewById<View>(R.id.option439)
-        val option1000 = findViewById<View>(R.id.option1000)
-        val option1500 = findViewById<View>(R.id.option1500)
-        val option2500 = findViewById<View>(R.id.option2500)
-
-        val options = listOf(option149, option290, option439, option1000, option1500, option2500)
+        val options = listOf(
+            findViewById<View>(R.id.option149),
+            findViewById<View>(R.id.option290),
+            findViewById<View>(R.id.option439),
+            findViewById<View>(R.id.option1000),
+            findViewById<View>(R.id.option1500),
+            findViewById<View>(R.id.option2500)
+        )
         options.forEach { view ->
             view.setOnClickListener { selectOption(view) }
         }
+        selectOption(findViewById(R.id.option1000))
 
-        selectOption(option1000)
-        loadPricing()
-        loadBalance()
-
-        buyButton.setOnClickListener {
-            val selectedId = selectedOption?.id
-            val packId = selectedId?.let { packByOptionId[it] }
-            if (packId == null) {
-                Toast.makeText(this, "Select a pack", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
-            if (baseUrl.isBlank()) {
-                Toast.makeText(this, "Backend URL not configured", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            lifecycleScope.launch {
-                val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
-                if (token.isNullOrBlank()) {
-                    AuthStore.clearSession(this@CreditStoreActivity)
-                    startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
-                    finish()
-                    return@launch
-                }
-
-                val tokenParam = "&access_token=${URLEncoder.encode(token, "UTF-8")}"
-                val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency$tokenParam"
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-            }
+        val hasCachedPricing = applyCachedPricing(selectedCurrency)
+        val hasCachedBalance = applyCachedBalance()
+        blockingInitialLoad = !hasCachedPricing && !hasCachedBalance
+        if (blockingInitialLoad) {
+            waitingInitialLoads = 2
+            showLoadingOnly(true)
         }
+
+        refreshStoreData()
+
+        buyButton.setOnClickListener { openCheckout() }
     }
 
     override fun onResume() {
         super.onResume()
+        if (!hasResumedOnce) {
+            hasResumedOnce = true
+            return
+        }
+        if (!blockingInitialLoad) {
+            loadBalance()
+        }
+    }
+
+    private fun openCheckout() {
+        val selectedId = selectedOption?.id
+        val packId = selectedId?.let { packByOptionId[it] }
+        if (packId == null) {
+            Toast.makeText(this, "Select a pack", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
+        if (baseUrl.isBlank()) {
+            Toast.makeText(this, "Backend URL not configured", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
+            if (token.isNullOrBlank()) {
+                AuthStore.clearSession(this@CreditStoreActivity)
+                startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
+                finish()
+                return@launch
+            }
+
+            val tokenParam = "&access_token=${URLEncoder.encode(token, "UTF-8")}"
+            val url = "$baseUrl/payfast/checkout?pack=$packId&currency=$selectedCurrency$tokenParam"
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+    }
+
+    private fun refreshStoreData() {
+        loadPricing()
         loadBalance()
     }
 
@@ -146,7 +170,6 @@ class CreditStoreActivity : AppCompatActivity() {
         selectedOption?.setBackgroundResource(R.drawable.bg_credit_option)
         view.setBackgroundResource(R.drawable.bg_credit_option_selected)
         selectedOption = view
-
         updateBuyButton()
     }
 
@@ -169,6 +192,7 @@ class CreditStoreActivity : AppCompatActivity() {
                 if (selected.code != selectedCurrency) {
                     selectedCurrency = selected.code
                     updateCurrencyRow()
+                    applyCachedPricing(selectedCurrency)
                     loadPricing()
                 }
             }
@@ -186,41 +210,26 @@ class CreditStoreActivity : AppCompatActivity() {
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) {
             Toast.makeText(this, "Backend URL not configured", Toast.LENGTH_SHORT).show()
+            onInitialLoadFinished()
             return
         }
 
-        val url = "$baseUrl/payfast/packs?currency=$selectedCurrency"
         lifecycleScope.launch {
             try {
-                val request = Request.Builder().url(url).build()
-                val body = withContext(Dispatchers.IO) {
-                    httpClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            throw IllegalStateException("Pricing fetch failed: ${response.code}")
-                        }
-                        response.body?.string().orEmpty()
+                val fetched = CreditStoreDataCache.fetchAndCachePricing(this@CreditStoreActivity, baseUrl, selectedCurrency)
+                if (fetched != null) {
+                    packPrices.clear()
+                    packPrices.putAll(fetched)
+                    for ((packId, viewId) in priceViewByPackId) {
+                        val value = fetched[packId] ?: continue
+                        findViewById<TextView>(viewId).text = value
                     }
+                    updateBuyButton()
                 }
-                val json = JSONObject(body)
-                val packs = json.getJSONArray("packs")
-                packPrices.clear()
-
-                for (i in 0 until packs.length()) {
-                    val pack = packs.getJSONObject(i)
-                    val id = pack.getString("id")
-                    val amount = pack.getString("amount")
-                    val currency = pack.getString("currency")
-                    val formatted = formatPrice(amount, currency)
-                    packPrices[id] = formatted
-                    val priceViewId = priceViewByPackId[id]
-                    if (priceViewId != null) {
-                        findViewById<TextView>(priceViewId).text = formatted
-                    }
-                }
-
-                updateBuyButton()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(this@CreditStoreActivity, R.string.currency_load_failed, Toast.LENGTH_SHORT).show()
+            } finally {
+                onInitialLoadFinished()
             }
         }
     }
@@ -228,55 +237,69 @@ class CreditStoreActivity : AppCompatActivity() {
     private fun loadBalance() {
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) {
+            onInitialLoadFinished()
             return
         }
+
         lifecycleScope.launch {
             try {
-                val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
-                if (token.isNullOrBlank()) {
-                    AuthStore.clearSession(this@CreditStoreActivity)
-                    startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
-                    finish()
+                val fetched = CreditStoreDataCache.fetchAndCacheBalance(this@CreditStoreActivity, baseUrl)
+                if (fetched == null) {
+                    val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
+                    if (token.isNullOrBlank()) {
+                        AuthStore.clearSession(this@CreditStoreActivity)
+                        startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
+                        finish()
+                        return@launch
+                    }
                     return@launch
                 }
-                val request = Request.Builder()
-                    .url("$baseUrl/credits/balance")
-                    .header("Authorization", "Bearer $token")
-                    .build()
-                val body = withContext(Dispatchers.IO) {
-                    httpClient.newCall(request).execute().use { response ->
-                        if (!response.isSuccessful) {
-                            throw IllegalStateException("Balance fetch failed: ${response.code}")
-                        }
-                        response.body?.string().orEmpty()
-                    }
-                }
-                val json = JSONObject(body)
-                val minutesRemaining = json.optInt("minutesRemaining", 0)
-                totalCreditsValue.text = minutesRemaining.coerceAtLeast(0).toString()
+                totalCreditsValue.text = fetched.toString()
             } catch (_: Exception) {
                 // Keep existing value on failure.
+            } finally {
+                onInitialLoadFinished()
             }
         }
     }
 
-    private fun formatPrice(amount: String, currency: String): String {
-        return when (currency) {
-            "USD" -> "\$$amount"
-            "EUR" -> "€$amount"
-            "GBP" -> "£$amount"
-            "ZAR" -> "R $amount"
-            else -> "$amount $currency"
+    private fun applyCachedBalance(): Boolean {
+        val cached = CreditStoreDataCache.getCachedBalanceMinutes(this) ?: return false
+        totalCreditsValue.text = cached.toString()
+        return true
+    }
+
+    private fun applyCachedPricing(currency: String): Boolean {
+        val cached = CreditStoreDataCache.getCachedPrices(this, currency) ?: return false
+        packPrices.clear()
+        packPrices.putAll(cached)
+        for ((packId, viewId) in priceViewByPackId) {
+            val value = cached[packId] ?: continue
+            findViewById<TextView>(viewId).text = value
         }
+        updateBuyButton()
+        return true
+    }
+
+    private fun onInitialLoadFinished() {
+        if (!blockingInitialLoad) return
+        waitingInitialLoads -= 1
+        if (waitingInitialLoads <= 0) {
+            blockingInitialLoad = false
+            showLoadingOnly(false)
+        }
+    }
+
+    private fun showLoadingOnly(loading: Boolean) {
+        loadingContainer.visibility = if (loading) View.VISIBLE else View.GONE
+        scrollView.visibility = if (loading) View.GONE else View.VISIBLE
     }
 
     private inner class CurrencyAdapter(
         private val items: List<CurrencyOption>
     ) : android.widget.BaseAdapter() {
         override fun getCount(): Int = items.size
-
         override fun getItem(position: Int): CurrencyOption = items[position]
-
         override fun getItemId(position: Int): Long = position.toLong()
 
         override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {

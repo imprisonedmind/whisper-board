@@ -81,14 +81,14 @@ class MainActivity : AppCompatActivity() {
         }
 
         creditsCard.setOnClickListener {
-            startActivity(Intent(this, CreditStoreActivity::class.java))
+            openCreditStore()
         }
         creditsInfoIcon.setOnClickListener {
-            startActivity(Intent(this, CreditStoreActivity::class.java))
+            openCreditStore()
         }
 
         buyCreditsButton.setOnClickListener {
-            startActivity(Intent(this, CreditStoreActivity::class.java))
+            openCreditStore()
         }
     }
 
@@ -96,6 +96,16 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         loadCredits()
         loadHistory()
+        lifecycleScope.launch {
+            CreditStoreDataCache.prefetch(this@MainActivity)
+        }
+    }
+
+    private fun openCreditStore() {
+        lifecycleScope.launch {
+            CreditStoreDataCache.prefetch(this@MainActivity)
+        }
+        startActivity(Intent(this, CreditStoreActivity::class.java))
     }
 
     private fun loadCredits() {

@@ -19,6 +19,7 @@ import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
 import com.walkietalkie.dictationime.openai.OpenAiConfig
 import com.walkietalkie.dictationime.settings.CreditStoreActivity
+import com.walkietalkie.dictationime.settings.CreditStoreDataCache
 import com.walkietalkie.dictationime.settings.MainActivity
 import com.walkietalkie.dictationime.settings.SettingsStore
 import kotlinx.coroutines.CoroutineScope
@@ -218,6 +219,9 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     }
 
     private fun openCreditStoreScreen() {
+        launch {
+            CreditStoreDataCache.prefetch(this@DictationImeService)
+        }
         val intent = Intent(this, CreditStoreActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)

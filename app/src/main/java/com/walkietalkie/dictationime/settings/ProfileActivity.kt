@@ -2,14 +2,15 @@ package com.walkietalkie.dictationime.settings
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
+import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -34,6 +35,9 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.creditStoreRow).setOnClickListener {
+            lifecycleScope.launch {
+                CreditStoreDataCache.prefetch(this@ProfileActivity)
+            }
             startActivity(Intent(this, CreditStoreActivity::class.java))
         }
     }
