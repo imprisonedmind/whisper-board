@@ -1,14 +1,19 @@
 package com.walkietalkie.dictationime.settings
 
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.drawable.ColorDrawable
 import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
@@ -21,6 +26,8 @@ import java.util.Locale
 class AppProfilesActivity : AppCompatActivity() {
     private lateinit var appsListContainer: LinearLayout
     private lateinit var appsEmptyText: TextView
+    private var appPromptDialog: Dialog? = null
+    private var loadedApps: List<AppListItem> = emptyList()
 
     private data class AppListItem(
         val packageName: String,
@@ -54,6 +61,7 @@ class AppProfilesActivity : AppCompatActivity() {
                 toUniquePackageList(resolved, packageManager)
             }
 
+            loadedApps = apps
             renderApps(apps)
         }
     }
@@ -85,19 +93,101 @@ class AppProfilesActivity : AppCompatActivity() {
     private fun renderApps(apps: List<AppListItem>) {
         appsListContainer.removeAllViews()
 
-        if (apps.isEmpty()) {
-            appsEmptyText.text = getString(R.string.app_profiles_empty)
-            return
+        val inflater = LayoutInflater.from(this)
+        val defaultRow = inflater.inflate(R.layout.item_app_profile_app, appsListContainer, false)
+        defaultRow.findViewById<android.widget.ImageView>(R.id.appIconView)
+            .setImageResource(R.drawable.ic_sparkle)
+        defaultRow.findViewById<TextView>(R.id.appNameView).text = getString(R.string.app_profiles_default_name)
+        defaultRow.findViewById<TextView>(R.id.appPackageView).text =
+            getString(R.string.app_profiles_default_subtitle)
+        val defaultEnabled = AppProfilesStore.getDefaultPrompt(this).isNotBlank()
+        defaultRow.findViewById<TextView>(R.id.appProfileStatusView).text =
+            getString(if (defaultEnabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
+        defaultRow.setOnClickListener {
+            showPromptDialog(
+                packageName = null,
+                profileName = getString(R.string.app_profiles_default_name),
+                existingPrompt = AppProfilesStore.getDefaultPrompt(this)
+            )
+        }
+        appsListContainer.addView(defaultRow)
+
+        appsEmptyText.text = if (apps.isEmpty()) {
+            getString(R.string.app_profiles_empty)
+        } else {
+            getString(R.string.app_profiles_count, apps.size)
         }
 
-        appsEmptyText.text = getString(R.string.app_profiles_count, apps.size)
-        val inflater = LayoutInflater.from(this)
         apps.forEach { app ->
             val row = inflater.inflate(R.layout.item_app_profile_app, appsListContainer, false)
             row.findViewById<android.widget.ImageView>(R.id.appIconView).setImageDrawable(app.icon)
             row.findViewById<TextView>(R.id.appNameView).text = app.label
             row.findViewById<TextView>(R.id.appPackageView).text = app.packageName
+            val enabled = AppProfilesStore.getAppPrompt(this, app.packageName).isNotBlank()
+            row.findViewById<TextView>(R.id.appProfileStatusView).text =
+                getString(if (enabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
+            row.setOnClickListener {
+                showPromptDialog(
+                    packageName = app.packageName,
+                    profileName = app.label,
+                    existingPrompt = AppProfilesStore.getAppPrompt(this, app.packageName)
+                )
+            }
             appsListContainer.addView(row)
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        appPromptDialog?.dismiss()
+        appPromptDialog = null
+    }
+
+    private fun showPromptDialog(packageName: String?, profileName: String, existingPrompt: String) {
+        appPromptDialog?.dismiss()
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_app_profile_prompt)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val title = dialog.findViewById<TextView>(R.id.dialogTitle)
+        val input = dialog.findViewById<EditText>(R.id.dialogPromptInput)
+        val cancelButton = dialog.findViewById<Button>(R.id.dialogCancelButton)
+        val submitButton = dialog.findViewById<Button>(R.id.dialogSubmitButton)
+
+        title.text = getString(R.string.app_profiles_dialog_title_format, profileName)
+        input.setText(existingPrompt)
+
+        cancelButton.backgroundTintList = null
+        cancelButton.setBackgroundResource(R.drawable.bg_danger_button_states)
+        cancelButton.setTextColor(android.graphics.Color.WHITE)
+
+        submitButton.backgroundTintList = null
+        submitButton.setBackgroundResource(R.drawable.bg_primary_button)
+        submitButton.setTextColor(ContextCompat.getColor(this, R.color.on_primary))
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+        submitButton.setOnClickListener {
+            val prompt = input.text?.toString()?.trim().orEmpty()
+            if (packageName == null) {
+                AppProfilesStore.setDefaultPrompt(this, prompt)
+            } else {
+                AppProfilesStore.setAppPrompt(this, packageName, prompt)
+            }
+            dialog.dismiss()
+            renderApps(loadedApps)
+        }
+
+        dialog.setOnDismissListener {
+            if (appPromptDialog === dialog) appPromptDialog = null
+        }
+        appPromptDialog = dialog
+        dialog.show()
     }
 }
