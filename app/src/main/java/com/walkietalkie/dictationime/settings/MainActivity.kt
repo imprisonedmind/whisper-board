@@ -6,9 +6,9 @@ import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -67,7 +67,9 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-        val profileButton: ImageButton = findViewById(R.id.profileButton)
+        val homeScroll: ScrollView = findViewById(R.id.homeScroll)
+        val navHomeTab: LinearLayout = findViewById(R.id.navHomeTab)
+        val navSettingsTab: LinearLayout = findViewById(R.id.navSettingsTab)
         val creditsCard: LinearLayout = findViewById(R.id.creditsCard)
         val creditsInfoIcon: ImageView = findViewById(R.id.creditsInfoIcon)
         creditStoreCard = findViewById(R.id.creditStoreCard)
@@ -87,10 +89,6 @@ class MainActivity : AppCompatActivity() {
             renderHistory(emptyList())
         }
 
-        profileButton.setOnClickListener {
-            startActivity(Intent(this, ProfileActivity::class.java))
-        }
-
         creditsCard.setOnClickListener {
             openCreditStore()
         }
@@ -100,6 +98,13 @@ class MainActivity : AppCompatActivity() {
 
         buyCreditsButton.setOnClickListener {
             openCreditStore()
+        }
+
+        navHomeTab.setOnClickListener {
+            homeScroll.smoothScrollTo(0, 0)
+        }
+        navSettingsTab.setOnClickListener {
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
     }
 
