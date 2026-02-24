@@ -19,7 +19,6 @@ import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
-import com.walkietalkie.dictationime.openai.OpenAiConfig
 import com.walkietalkie.dictationime.settings.CreditStoreActivity
 import com.walkietalkie.dictationime.settings.CreditStoreDataCache
 import com.walkietalkie.dictationime.settings.MainActivity
@@ -44,15 +43,6 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     private var pendingSend = false
     private var lastAudioUpdateMs = 0L
     private val lastProfileTouchMs = mutableMapOf<String, Long>()
-    private val prefsListener =
-        android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
-            if (SettingsStore.isOutOfCreditsKey(key)) {
-                applyOutOfCreditsMode()
-            }
-            if (SettingsStore.isOpenSourceKey(key)) {
-                applyOpenSourceMode()
-            }
-        }
     private val authListener =
         android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
             applyAuthMode()
@@ -60,9 +50,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     override fun onCreate() {
         super.onCreate()
-        SettingsStore.registerListener(this, prefsListener)
         AuthStore.registerListener(this, authListener)
-        applyOpenSourceMode()
         dictationController = DictationController(
             audioCapture = audioCapture,
             speechRecognizer = recognizer,
@@ -104,7 +92,6 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         }
         keyboardView = view
         applyAuthMode()
-        applyOutOfCreditsMode()
         return view
     }
 
@@ -112,8 +99,6 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         super.onStartInputView(info, restarting)
         trackHostAppForProfiles(info)
         applyAuthMode()
-        applyOutOfCreditsMode()
-        applyOpenSourceMode()
     }
 
     override fun onFinishInput() {
@@ -126,27 +111,12 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
     override fun onDestroy() {
         super.onDestroy()
-        SettingsStore.unregisterListener(this, prefsListener)
         AuthStore.unregisterListener(this, authListener)
         runBlocking {
             dictationController.close()
         }
         updateKeepScreenOn(false)
         cancel()
-    }
-
-    private fun applyOutOfCreditsMode() {
-        val enabled = SettingsStore.isOutOfCreditsMode(this)
-        keyboardView?.setOutOfCreditsMode(enabled)
-        if (enabled) {
-            pendingSend = false
-            dictationController.cancel()
-            updateKeepScreenOn(false)
-        }
-    }
-
-    private fun applyOpenSourceMode() {
-        OpenAiConfig.setOpenSourceOverride(SettingsStore.isOpenSourceMode(this))
     }
 
     private fun applyAuthMode() {

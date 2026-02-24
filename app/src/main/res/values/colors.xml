@@ -10,6 +10,7 @@
     <color name="accent_pressed">#2E6EDB</color>
     <color name="accent_soft">#BDD8FF</color>
     <color name="accent_glow">#E3EEFF</color>
+    <color name="tertiary">#E4A23B</color>
     <color name="on_primary">#FFFFFF</color>
     <color name="danger_fill">#A1303A</color>
     <color name="danger_border">#F46B72</color>

@@ -10,5 +10,6 @@
     <color name="accent_pressed">#2DD4BF</color>
     <color name="accent_soft">#1D8F81</color>
     <color name="accent_glow">#0E3A35</color>
+    <color name="tertiary">#F0C46E</color>
     <color name="on_primary">#0F1113</color>
 </resources>
