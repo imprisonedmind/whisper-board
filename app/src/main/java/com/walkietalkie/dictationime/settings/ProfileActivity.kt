@@ -46,6 +46,9 @@ class ProfileActivity : AppCompatActivity() {
         }
 
         findViewById<LinearLayout>(R.id.dataPrivacyRow).setOnClickListener {
+            lifecycleScope.launch {
+                DataDeletionStatusDataCache.prefetch(this@ProfileActivity)
+            }
             startActivity(Intent(this, DataPrivacyActivity::class.java))
         }
 
@@ -83,6 +86,9 @@ class ProfileActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         renderSelectedModel()
+        lifecycleScope.launch {
+            DataDeletionStatusDataCache.prefetch(this@ProfileActivity)
+        }
         lifecycleScope.launch {
             runCatching {
                 TranscriptionModelStore.fetchRemote(this@ProfileActivity)

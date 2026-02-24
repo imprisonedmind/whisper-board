@@ -53,6 +53,7 @@ class DataPrivacyActivity : AppCompatActivity() {
     private var suppressTrackingToggleCallback = false
     private var trackingConfirmDialog: Dialog? = null
     private var hasRequestedDeletion = false
+    private var hasRenderedCache = false
     private val dateFormatter: DateFormat by lazy { DateFormat.getDateInstance(DateFormat.MEDIUM) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +91,11 @@ class DataPrivacyActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.dataPrivacyBackButton).setOnClickListener { finish() }
         deleteDataButton.setOnClickListener { confirmDeletionRequest() }
         cancelDeletionButton.setOnClickListener { confirmCancelDeletionRequest() }
+
+        DataDeletionStatusDataCache.getCachedStatus(this)?.let {
+            hasRenderedCache = true
+            updateStatusUi(requestedAt = it.requestedAt, scheduledAt = it.scheduledAt)
+        }
     }
 
     override fun onResume() {
@@ -121,31 +127,21 @@ class DataPrivacyActivity : AppCompatActivity() {
             return
         }
 
-        setLoading(true, null)
+        if (!hasRenderedCache) {
+            setLoading(true, null)
+        }
         lifecycleScope.launch {
             try {
-                val token = AuthSessionManager.getValidAccessToken(this@DataPrivacyActivity)
-                if (token.isNullOrBlank()) {
-                    throw IllegalStateException("Missing token")
+                val fetched = DataDeletionStatusDataCache.fetchAndCacheStatus(this@DataPrivacyActivity, baseUrl)
+                if (fetched != null) {
+                    hasRenderedCache = true
+                    updateStatusUi(
+                        requestedAt = fetched.requestedAt,
+                        scheduledAt = fetched.scheduledAt
+                    )
+                    return@launch
                 }
-
-                val request = Request.Builder()
-                    .url("$baseUrl/profiles/data-deletion")
-                    .header("Authorization", "Bearer $token")
-                    .get()
-                    .build()
-
-                val response = withContext(Dispatchers.IO) { client.newCall(request).execute() }
-                val body = response.body?.string().orEmpty()
-                if (!response.isSuccessful) {
-                    throw IllegalStateException(body.ifBlank { "Failed to fetch status" })
-                }
-
-                val json = JSONObject(body)
-                updateStatusUi(
-                    requestedAt = json.optLongOrNull("requestedAt"),
-                    scheduledAt = json.optLongOrNull("scheduledAt")
-                )
+                throw IllegalStateException("Failed to fetch status")
             } catch (_: Exception) {
                 statusText.text = getString(R.string.data_privacy_status_none)
                 hasRequestedDeletion = false
@@ -186,10 +182,10 @@ class DataPrivacyActivity : AppCompatActivity() {
                 }
 
                 val json = JSONObject(body)
-                updateStatusUi(
-                    requestedAt = json.optLongOrNull("requestedAt"),
-                    scheduledAt = json.optLongOrNull("scheduledAt")
-                )
+                val requestedAt = json.optLongOrNull("requestedAt")
+                val scheduledAt = json.optLongOrNull("scheduledAt")
+                DataDeletionStatusDataCache.cacheStatus(this@DataPrivacyActivity, requestedAt, scheduledAt)
+                updateStatusUi(requestedAt = requestedAt, scheduledAt = scheduledAt)
             } catch (_: Exception) {
                 Toast.makeText(this@DataPrivacyActivity, R.string.data_privacy_request_failed, Toast.LENGTH_SHORT).show()
             } finally {
@@ -259,10 +255,10 @@ class DataPrivacyActivity : AppCompatActivity() {
                 }
 
                 val json = JSONObject(body)
-                updateStatusUi(
-                    requestedAt = json.optLongOrNull("requestedAt"),
-                    scheduledAt = json.optLongOrNull("scheduledAt")
-                )
+                val requestedAt = json.optLongOrNull("requestedAt")
+                val scheduledAt = json.optLongOrNull("scheduledAt")
+                DataDeletionStatusDataCache.cacheStatus(this@DataPrivacyActivity, requestedAt, scheduledAt)
+                updateStatusUi(requestedAt = requestedAt, scheduledAt = scheduledAt)
             } catch (_: Exception) {
                 Toast.makeText(this@DataPrivacyActivity, R.string.data_privacy_cancel_failed, Toast.LENGTH_SHORT).show()
             } finally {
