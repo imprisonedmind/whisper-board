@@ -48,4 +48,17 @@
         android:minHeight="48dp"
         android:text="@string/app_profiles_mode_recommended"
         android:textColor="@color/on_primary" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/dialogModeDeleteButton"
+        style="@style/Widget.DictationIme.PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_danger_button_states"
+        android:backgroundTint="@null"
+        android:minHeight="48dp"
+        android:text="@string/app_profiles_mode_delete"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
 </LinearLayout>

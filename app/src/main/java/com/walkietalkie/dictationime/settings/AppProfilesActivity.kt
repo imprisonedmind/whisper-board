@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
-import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -257,6 +256,36 @@ class AppProfilesActivity : AppCompatActivity() {
             val recommended = buildRecommendedPrompt(packageName, profileName, mode)
             showPromptDialog(packageName, profileName, recommended)
         }
+        val deleteButton = dialog.findViewById<Button>(R.id.dialogModeDeleteButton)
+        val canDelete = existingPrompt.isNotBlank()
+        deleteButton.visibility = if (canDelete) android.view.View.VISIBLE else android.view.View.GONE
+        deleteButton.backgroundTintList = null
+        deleteButton.setBackgroundResource(R.drawable.bg_danger_button_states)
+        deleteButton.setTextColor(android.graphics.Color.WHITE)
+        deleteButton.setOnClickListener {
+            deleteButton.isEnabled = false
+            lifecycleScope.launch {
+                runCatching {
+                    if (packageName == null) {
+                        AppProfilesStore.setDefaultPrompt(this@AppProfilesActivity, "")
+                        defaultPrompt = ""
+                    } else {
+                        AppProfilesStore.setAppPrompt(this@AppProfilesActivity, packageName, "")
+                        appPrompts.remove(packageName)
+                    }
+                }.onSuccess {
+                    dialog.dismiss()
+                    renderApps(loadedApps)
+                }.onFailure {
+                    deleteButton.isEnabled = true
+                    Toast.makeText(
+                        this@AppProfilesActivity,
+                        R.string.app_profiles_save_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
 
         dialog.setOnDismissListener {
             if (profileModeDialog === dialog) profileModeDialog = null
@@ -279,6 +308,7 @@ class AppProfilesActivity : AppCompatActivity() {
         val title = dialog.findViewById<TextView>(R.id.dialogTitle)
         val input = dialog.findViewById<EditText>(R.id.dialogPromptInput)
         val cancelButton = dialog.findViewById<Button>(R.id.dialogCancelButton)
+        val removeButton = dialog.findViewById<Button>(R.id.dialogRemoveButton)
         val submitButton = dialog.findViewById<Button>(R.id.dialogSubmitButton)
 
         title.text = getString(R.string.app_profiles_dialog_title_format, profileName)
@@ -291,14 +321,47 @@ class AppProfilesActivity : AppCompatActivity() {
         submitButton.backgroundTintList = null
         submitButton.setBackgroundResource(R.drawable.bg_primary_button)
         submitButton.setTextColor(ContextCompat.getColor(this, R.color.on_primary))
+        removeButton.visibility = if (existingPrompt.isBlank()) android.view.View.GONE else android.view.View.VISIBLE
+        removeButton.backgroundTintList = null
+        removeButton.setBackgroundResource(R.drawable.bg_danger_button_states)
+        removeButton.setTextColor(android.graphics.Color.WHITE)
 
         cancelButton.setOnClickListener {
             dialog.dismiss()
+        }
+        removeButton.setOnClickListener {
+            submitButton.isEnabled = false
+            cancelButton.isEnabled = false
+            removeButton.isEnabled = false
+            lifecycleScope.launch {
+                runCatching {
+                    if (packageName == null) {
+                        AppProfilesStore.setDefaultPrompt(this@AppProfilesActivity, "")
+                        defaultPrompt = ""
+                    } else {
+                        AppProfilesStore.setAppPrompt(this@AppProfilesActivity, packageName, "")
+                        appPrompts.remove(packageName)
+                    }
+                }.onSuccess {
+                    dialog.dismiss()
+                    renderApps(loadedApps)
+                }.onFailure {
+                    submitButton.isEnabled = true
+                    cancelButton.isEnabled = true
+                    removeButton.isEnabled = true
+                    Toast.makeText(
+                        this@AppProfilesActivity,
+                        R.string.app_profiles_save_failed,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
         submitButton.setOnClickListener {
             val prompt = input.text?.toString()?.trim().orEmpty()
             submitButton.isEnabled = false
             cancelButton.isEnabled = false
+            removeButton.isEnabled = false
             lifecycleScope.launch {
                 runCatching {
                     if (packageName == null) {
@@ -318,6 +381,7 @@ class AppProfilesActivity : AppCompatActivity() {
                 }.onFailure {
                     submitButton.isEnabled = true
                     cancelButton.isEnabled = true
+                    removeButton.isEnabled = true
                     Toast.makeText(
                         this@AppProfilesActivity,
                         R.string.app_profiles_save_failed,
@@ -335,7 +399,7 @@ class AppProfilesActivity : AppCompatActivity() {
     }
 
     private fun currentModelId(): String {
-        return DEFAULT_MODEL_ID
+        return SettingsStore.getSelectedModel(this)
     }
 
     private fun recommendedPromptModeForModel(modelId: String): RecommendedPromptMode {

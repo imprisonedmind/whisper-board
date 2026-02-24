@@ -2,13 +2,15 @@ package com.walkietalkie.dictationime.ime
 
 import com.walkietalkie.dictationime.asr.SpeechRecognizer
 import com.walkietalkie.dictationime.audio.AudioCapture
+import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
+import com.walkietalkie.dictationime.model.TranscriptionModels
 import com.walkietalkie.dictationime.model.ModelManager
 
 class DictationController(
     private val audioCapture: AudioCapture,
     private val speechRecognizer: SpeechRecognizer,
     private val modelManager: ModelManager,
-    private val modelId: String,
+    private val modelIdProvider: () -> String = { DEFAULT_MODEL_ID },
     private val onCommitText: (String) -> Unit,
     private val onStateChanged: (DictationState) -> Unit = {}
 ) {
@@ -25,6 +27,7 @@ class DictationController(
             return Result.failure(IllegalStateException("Cannot start in current state: $state"))
         }
 
+        val modelId = TranscriptionModels.normalizeModelId(modelIdProvider())
         modelManager.ensureModelReady(modelId).onFailure {
             setState(DictationState.Error(DictationError.ConfigurationMissing))
             return Result.failure(it)

@@ -53,6 +53,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".settings.ModelSelectionActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".settings.CreditStoreActivity"
             android:exported="false" />
 

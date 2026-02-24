@@ -66,6 +66,21 @@
             android:textColor="@android:color/white" />
 
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/dialogRemoveButton"
+            style="@style/Widget.DictationIme.PrimaryButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_danger_button_states"
+            android:backgroundTint="@null"
+            android:minWidth="0dp"
+            android:minHeight="42dp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:text="@string/app_profiles_dialog_remove"
+            android:textColor="@android:color/white" />
+
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/dialogSubmitButton"
             style="@style/Widget.DictationIme.PrimaryButton"
             android:layout_width="wrap_content"

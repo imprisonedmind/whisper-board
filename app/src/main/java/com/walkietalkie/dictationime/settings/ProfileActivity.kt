@@ -10,9 +10,12 @@ import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
+import com.walkietalkie.dictationime.model.TranscriptionModels
 import kotlinx.coroutines.launch
 
 class ProfileActivity : AppCompatActivity() {
+    private lateinit var modelSubtitleText: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -35,6 +38,8 @@ class ProfileActivity : AppCompatActivity() {
             getString(R.string.profile_unverified_status)
         }
         findViewById<TextView>(R.id.profileVerificationStatus).text = verificationStatus
+        modelSubtitleText = findViewById(R.id.modelSelectionSubtitle)
+        renderSelectedModel()
 
         findViewById<LinearLayout>(R.id.deviceSettingsRow).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -42,6 +47,10 @@ class ProfileActivity : AppCompatActivity() {
 
         findViewById<LinearLayout>(R.id.appProfilesRow).setOnClickListener {
             startActivity(Intent(this, AppProfilesActivity::class.java))
+        }
+
+        findViewById<LinearLayout>(R.id.modelSelectionRow).setOnClickListener {
+            startActivity(Intent(this, ModelSelectionActivity::class.java))
         }
 
         findViewById<LinearLayout>(R.id.transactionHistoryRow).setOnClickListener {
@@ -65,5 +74,22 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        renderSelectedModel()
+        lifecycleScope.launch {
+            runCatching {
+                TranscriptionModelStore.fetchRemote(this@ProfileActivity)
+            }.onSuccess {
+                renderSelectedModel()
+            }
+        }
+    }
+
+    private fun renderSelectedModel() {
+        val modelId = SettingsStore.getSelectedModel(this)
+        modelSubtitleText.text = TranscriptionModels.displayLabelFor(modelId)
     }
 }

@@ -67,7 +67,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
             audioCapture = audioCapture,
             speechRecognizer = recognizer,
             modelManager = modelManager,
-            modelId = DEFAULT_MODEL_ID,
+            modelIdProvider = { SettingsStore.getSelectedModel(this) },
             onCommitText = { text ->
                 Log.d(logTag, "commitFinalText length=${text.length}")
                 commitFinalText(text)

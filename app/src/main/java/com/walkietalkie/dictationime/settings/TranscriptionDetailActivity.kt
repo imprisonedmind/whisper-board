@@ -20,6 +20,7 @@ import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
+import com.walkietalkie.dictationime.model.TranscriptionModels
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -50,6 +51,7 @@ class TranscriptionDetailActivity : AppCompatActivity() {
         requestId = intent.getStringExtra(EXTRA_REQUEST_ID).orEmpty()
         val createdAtLabel = intent.getStringExtra(EXTRA_CREATED_AT_LABEL).orEmpty()
         val profileKey = intent.getStringExtra(EXTRA_PROFILE_KEY).orEmpty()
+        val modelId = intent.getStringExtra(EXTRA_MODEL_ID).orEmpty()
         isInaccurate = intent.getBooleanExtra(EXTRA_IS_INACCURATE, false)
         inaccurateReason = intent.getStringExtra(EXTRA_INACCURATE_REASON).orEmpty().ifBlank { null }
 
@@ -67,6 +69,11 @@ class TranscriptionDetailActivity : AppCompatActivity() {
                     profileKey.isBlank() -> "None"
                     else -> profileKey
                 }
+            )
+        findViewById<TextView>(R.id.metaModel).text =
+            getString(
+                R.string.history_detail_meta_model,
+                if (modelId.isBlank()) "Unknown" else TranscriptionModels.displayLabelFor(modelId)
             )
         findViewById<TextView>(R.id.metaRequestId).text =
             getString(R.string.history_detail_meta_request, requestId.ifBlank { "N/A" })
@@ -240,6 +247,7 @@ class TranscriptionDetailActivity : AppCompatActivity() {
         const val EXTRA_CREATED_AT_MS = "extra_created_at_ms"
         const val EXTRA_CREATED_AT_LABEL = "extra_created_at_label"
         const val EXTRA_PROFILE_KEY = "extra_profile_key"
+        const val EXTRA_MODEL_ID = "extra_model_id"
         const val EXTRA_IS_INACCURATE = "extra_is_inaccurate"
         const val EXTRA_INACCURATE_REASON = "extra_inaccurate_reason"
     }
