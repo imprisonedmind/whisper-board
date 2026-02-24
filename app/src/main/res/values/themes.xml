@@ -15,4 +15,12 @@
     <style name="Widget.DictationIme.PrimaryButton" parent="Widget.MaterialComponents.Button">
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="Widget.DictationIme.DangerButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:background">@drawable/bg_danger_button_states</item>
+        <item name="android:backgroundTint">@null</item>
+        <item name="android:textColor">@color/text_on_danger_button</item>
+    </style>
 </resources>

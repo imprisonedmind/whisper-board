@@ -45,6 +45,10 @@ class ProfileActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
+        findViewById<LinearLayout>(R.id.dataPrivacyRow).setOnClickListener {
+            startActivity(Intent(this, DataPrivacyActivity::class.java))
+        }
+
         findViewById<LinearLayout>(R.id.appProfilesRow).setOnClickListener {
             startActivity(Intent(this, AppProfilesActivity::class.java))
         }

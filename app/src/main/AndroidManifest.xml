@@ -49,6 +49,10 @@
             android:exported="false" />
 
         <activity
+            android:name=".settings.DataPrivacyActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".settings.AppProfilesActivity"
             android:exported="false" />
 
