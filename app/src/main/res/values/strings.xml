@@ -106,6 +106,8 @@
     <string name="logged_out_cta">Log in</string>
     <string name="open_source_toggle_title">Open source mode</string>
     <string name="open_source_toggle_subtitle">Use your own OpenAI key and connect directly.</string>
+    <string name="dev_mode_banner_title">You are in dev mode</string>
+    <string name="dev_mode_banner_body">Please configure your API key in Settings.</string>
     <string name="profile_open_source_api_key_title">OpenAI API key</string>
     <string name="profile_open_source_api_key_subtitle">Manage your local key for open-source mode</string>
     <string name="open_source_api_key_title">OpenAI API key</string>

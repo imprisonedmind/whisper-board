@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
         val homeScroll: ScrollView = findViewById(R.id.homeScroll)
         val navHomeTab: LinearLayout = findViewById(R.id.navHomeTab)
         val navSettingsTab: LinearLayout = findViewById(R.id.navSettingsTab)
+        val devModeBanner: LinearLayout = findViewById(R.id.devModeBanner)
         val creditsCard: LinearLayout = findViewById(R.id.creditsCard)
         val historyCard: LinearLayout = findViewById(R.id.historyCard)
         val creditsInfoIcon: ImageView = findViewById(R.id.creditsInfoIcon)
@@ -85,6 +86,7 @@ class MainActivity : AppCompatActivity() {
         creditsRing = findViewById(R.id.creditsRing)
         creditsBalanceText = findViewById(R.id.creditsBalanceText)
         creditsUsageValue = findViewById(R.id.creditsUsageValue)
+        devModeBanner.visibility = if (AppModeConfig.isOpenSourceMode) View.VISIBLE else View.GONE
 
         if (AppModeConfig.backendFeaturesEnabled) {
             val appliedCreditsCache = applyCachedCredits()

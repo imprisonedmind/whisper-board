@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginStart="18dp"
@@ -50,13 +51,14 @@
         android:gravity="end"
         android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/dialogCancelButton"
             style="@style/Widget.DictationIme.PrimaryButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="@drawable/bg_danger_button_states"
             android:backgroundTint="@null"
+            app:backgroundTint="@null"
             android:minWidth="0dp"
             android:minHeight="42dp"
             android:paddingStart="14dp"
@@ -64,7 +66,7 @@
             android:text="@string/open_source_api_key_cancel"
             android:textColor="@android:color/white" />
 
-        <androidx.appcompat.widget.AppCompatButton
+        <Button
             android:id="@+id/dialogSubmitButton"
             style="@style/Widget.DictationIme.PrimaryButton"
             android:layout_width="wrap_content"
@@ -72,6 +74,7 @@
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_primary_button"
             android:backgroundTint="@null"
+            app:backgroundTint="@null"
             android:minWidth="0dp"
             android:minHeight="42dp"
             android:paddingStart="14dp"

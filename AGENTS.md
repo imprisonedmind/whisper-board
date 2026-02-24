@@ -29,12 +29,17 @@ Use this file whenever adding or editing buttons in `walkie-talkie/app`.
    - `android:backgroundTint="@null"`
    - `app:backgroundTint="@null"`
 3. Do not declare destructive buttons as `PrimaryButton` and then patch with runtime overrides.
-4. Do not override destructive text color per-button; use the shared selector (`@color/text_on_danger_button`).
-5. Keep style ownership in XML. Runtime code should not re-skin buttons unless absolutely necessary.
+3. In dialogs, prefer `Button` over `AppCompatButton` for destructive actions if tint keeps overriding danger background.
+4. If dialog tint still overrides despite XML attrs, apply runtime fallback before `show()`:
+   - `button.backgroundTintList = null`
+   - `button.setBackgroundResource(R.drawable.bg_danger_button_states)`
+   - `button.setTextColor(Color.WHITE)`
+5. Do not override destructive text color per-button unless applying the dialog fallback above.
+6. Keep style ownership in XML by default; runtime re-skinning is fallback-only for dialog tint issues.
 
 ## Known Pitfall
 
-- Wrong pattern (do not do):
+- Wrong pattern (do not do by default):
   - `style="@style/Widget.DictationIme.PrimaryButton"` + `android:background="@drawable/bg_danger_button_states"` + custom text color
 - Why this fails:
   - It drifts from the app-wide danger style and can mismatch typography/state behavior.

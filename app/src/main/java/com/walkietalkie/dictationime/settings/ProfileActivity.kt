@@ -12,6 +12,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
@@ -64,6 +65,7 @@ class ProfileActivity : AppCompatActivity() {
         val dataPrivacyDivider = findViewById<View>(R.id.dataPrivacyDivider)
         val openSourceApiKeyDivider = findViewById<View>(R.id.openSourceApiKeyDivider)
         val appProfilesDivider = findViewById<View>(R.id.appProfilesDivider)
+        val modelSelectionDivider = findViewById<View>(R.id.modelSelectionDivider)
         val transactionHistoryDivider = findViewById<View>(R.id.transactionHistoryDivider)
         val creditStoreDivider = findViewById<View>(R.id.creditStoreDivider)
         val logoutButton = findViewById<android.widget.Button>(R.id.logoutButton)
@@ -72,12 +74,14 @@ class ProfileActivity : AppCompatActivity() {
             openSourceApiKeyRow.visibility = View.VISIBLE
             dataPrivacyDivider.visibility = View.VISIBLE
             openSourceApiKeyDivider.visibility = View.VISIBLE
+            modelSelectionDivider.visibility = View.GONE
             openSourceApiKeyRow.setOnClickListener {
                 showOpenSourceApiKeyDialog()
             }
         } else {
             openSourceApiKeyRow.visibility = View.GONE
             openSourceApiKeyDivider.visibility = View.GONE
+            modelSelectionDivider.visibility = View.VISIBLE
         }
 
         if (AppModeConfig.backendFeaturesEnabled) {
@@ -172,6 +176,14 @@ class ProfileActivity : AppCompatActivity() {
         val apiKeyInput = dialog.findViewById<EditText>(R.id.dialogApiKeyInput)
         val cancelButton = dialog.findViewById<Button>(R.id.dialogCancelButton)
         val submitButton = dialog.findViewById<Button>(R.id.dialogSubmitButton)
+
+        cancelButton.backgroundTintList = null
+        cancelButton.setBackgroundResource(R.drawable.bg_danger_button_states)
+        cancelButton.setTextColor(android.graphics.Color.WHITE)
+
+        submitButton.backgroundTintList = null
+        submitButton.setBackgroundResource(R.drawable.bg_primary_button)
+        submitButton.setTextColor(ContextCompat.getColor(this, R.color.on_primary))
 
         val resolvedKey = OpenAiConfig.apiKey(this)
         val maskedKey = maskApiKeyForDisplay(resolvedKey)
