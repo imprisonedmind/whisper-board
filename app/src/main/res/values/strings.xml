@@ -55,6 +55,7 @@
     <string name="history_detail_meta_label">Metadata</string>
     <string name="history_detail_meta_time">Recorded: %1$s</string>
     <string name="history_detail_meta_duration">Duration: %1$s</string>
+    <string name="history_detail_meta_profile">Profile: %1$s</string>
     <string name="history_detail_meta_credits">Credits used: %1$s</string>
     <string name="history_detail_meta_request">Request ID: %1$s</string>
     <string name="history_copy_text">Copy text</string>
@@ -139,6 +140,10 @@
     <string name="app_profiles_dialog_prompt_example">Example: For WhatsApp, use lowercase, short slang, and emojis.</string>
     <string name="app_profiles_dialog_submit">Submit</string>
     <string name="app_profiles_dialog_cancel">Cancel</string>
+    <string name="app_profiles_mode_title_format">%1$s profile</string>
+    <string name="app_profiles_mode_body">Choose how to set this profile before editing its prompt.</string>
+    <string name="app_profiles_mode_custom">Custom profile</string>
+    <string name="app_profiles_mode_recommended">Recommended profile</string>
     <string name="app_profiles_sync_failed">Could not sync profiles right now.</string>
     <string name="app_profiles_save_failed">Could not save profile right now.</string>
     <string name="grant_mic_permission">Grant microphone permission</string>

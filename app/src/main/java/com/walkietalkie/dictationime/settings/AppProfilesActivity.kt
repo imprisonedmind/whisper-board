@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
+import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -28,11 +29,17 @@ class AppProfilesActivity : AppCompatActivity() {
     private lateinit var appsListContainer: LinearLayout
     private lateinit var appsEmptyText: TextView
     private var appPromptDialog: Dialog? = null
+    private var profileModeDialog: Dialog? = null
     private var loadedApps: List<AppListItem> = emptyList()
     private var installedApps: List<AppListItem> = emptyList()
     private var defaultPrompt: String = ""
     private var appPrompts: MutableMap<String, String> = mutableMapOf()
     private var appLastUsedAt: MutableMap<String, Long> = mutableMapOf()
+
+    private enum class RecommendedPromptMode {
+        WhisperExample,
+        Instructional
+    }
 
     private data class AppListItem(
         val packageName: String,
@@ -179,7 +186,7 @@ class AppProfilesActivity : AppCompatActivity() {
         defaultRow.findViewById<TextView>(R.id.appProfileStatusView).text =
             getString(if (defaultEnabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
         defaultRow.setOnClickListener {
-            showPromptDialog(
+            showProfileModeDialog(
                 packageName = null,
                 profileName = getString(R.string.app_profiles_default_name),
                 existingPrompt = defaultPrompt
@@ -207,7 +214,7 @@ class AppProfilesActivity : AppCompatActivity() {
             row.findViewById<TextView>(R.id.appProfileStatusView).text =
                 getString(if (enabled) R.string.app_profile_status_enabled else R.string.app_profile_status_disabled)
             row.setOnClickListener {
-                showPromptDialog(
+                showProfileModeDialog(
                     packageName = app.packageName,
                     profileName = app.label,
                     existingPrompt = appPrompts[app.packageName].orEmpty()
@@ -221,6 +228,41 @@ class AppProfilesActivity : AppCompatActivity() {
         super.onDestroy()
         appPromptDialog?.dismiss()
         appPromptDialog = null
+        profileModeDialog?.dismiss()
+        profileModeDialog = null
+    }
+
+    private fun showProfileModeDialog(packageName: String?, profileName: String, existingPrompt: String) {
+        profileModeDialog?.dismiss()
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_profile_mode_picker)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<TextView>(R.id.dialogModeTitle).text =
+            getString(R.string.app_profiles_mode_title_format, profileName)
+
+        dialog.findViewById<Button>(R.id.dialogModeCustomButton).setOnClickListener {
+            dialog.dismiss()
+            showPromptDialog(packageName, profileName, existingPrompt)
+        }
+        dialog.findViewById<Button>(R.id.dialogModeRecommendedButton).setOnClickListener {
+            dialog.dismiss()
+            val modelId = currentModelId()
+            val mode = recommendedPromptModeForModel(modelId)
+            val recommended = buildRecommendedPrompt(packageName, profileName, mode)
+            showPromptDialog(packageName, profileName, recommended)
+        }
+
+        dialog.setOnDismissListener {
+            if (profileModeDialog === dialog) profileModeDialog = null
+        }
+        profileModeDialog = dialog
+        dialog.show()
     }
 
     private fun showPromptDialog(packageName: String?, profileName: String, existingPrompt: String) {
@@ -290,5 +332,73 @@ class AppProfilesActivity : AppCompatActivity() {
         }
         appPromptDialog = dialog
         dialog.show()
+    }
+
+    private fun currentModelId(): String {
+        return DEFAULT_MODEL_ID
+    }
+
+    private fun recommendedPromptModeForModel(modelId: String): RecommendedPromptMode {
+        val normalized = modelId.trim().lowercase(Locale.US)
+        return if (normalized.startsWith("whisper")) {
+            RecommendedPromptMode.WhisperExample
+        } else {
+            RecommendedPromptMode.Instructional
+        }
+    }
+
+    private fun buildRecommendedPrompt(
+        packageName: String?,
+        profileName: String,
+        mode: RecommendedPromptMode
+    ): String {
+        return when (mode) {
+            RecommendedPromptMode.WhisperExample ->
+                buildWhisperRecommendedPrompt(packageName, profileName)
+            RecommendedPromptMode.Instructional ->
+                buildInstructionalRecommendedPrompt(packageName, profileName)
+        }
+    }
+
+    private fun buildWhisperRecommendedPrompt(packageName: String?, profileName: String): String {
+        if (packageName == null) {
+            return "Hi team, quick update: I finished the draft and will share the final version by 3:00 PM. Please review and send feedback."
+        }
+        val key = packageName.lowercase(Locale.US)
+        return when {
+            key.contains("whatsapp") || key.contains("telegram") || key.contains("messages") ->
+                "hey lol that was wild 😭 i cant believe it happened today. wanna chat later?"
+            key.contains("slack") || key.contains("teams") || key.contains("discord") ->
+                "Quick update: shipped auth fix, tests are green, and PR is ready for review."
+            key.contains("gmail") || key.contains("outlook") ->
+                "Hi Sarah,\n\nThanks for your message. I have attached the revised proposal and timeline.\n\nBest regards,\nLuke"
+            key.contains("notion") || key.contains("docs") || key.contains("keep") ->
+                "Meeting notes:\n- finalize onboarding flow\n- add analytics event for signup\n- QA by Thursday"
+            key.contains("instagram") || key.contains("twitter") || key.contains("x") || key.contains("linkedin") ->
+                "Shipping a cleaner voice-to-text workflow today. Faster edits, better accuracy, and less friction."
+            else ->
+                "Draft for $profileName: clear wording, natural sentence flow, and minimal filler words."
+        }
+    }
+
+    private fun buildInstructionalRecommendedPrompt(packageName: String?, profileName: String): String {
+        if (packageName == null) {
+            return "Transcribe clearly with proper punctuation and concise wording. Keep a neutral professional tone and avoid emojis."
+        }
+        val key = packageName.lowercase(Locale.US)
+        return when {
+            key.contains("whatsapp") || key.contains("telegram") || key.contains("messages") ->
+                "Transcribe as casual chat text: short sentences, lowercase, and natural texting style with light emoji use when relevant."
+            key.contains("slack") || key.contains("teams") || key.contains("discord") ->
+                "Transcribe for team chat: concise, readable, and action-oriented. Preserve technical terms and keep formatting clear."
+            key.contains("gmail") || key.contains("outlook") ->
+                "Transcribe as a polished email draft with correct punctuation, sentence casing, and clear paragraph breaks."
+            key.contains("notion") || key.contains("docs") || key.contains("keep") ->
+                "Transcribe as structured notes with clean sentence boundaries. Preserve headings, list items, and tasks if spoken."
+            key.contains("instagram") || key.contains("twitter") || key.contains("x") || key.contains("linkedin") ->
+                "Transcribe in a social post style: concise, engaging, and clear. Keep tone natural and avoid overlong sentences."
+            else ->
+                "Transcribe for $profileName with clear wording and natural tone. Keep punctuation correct and avoid filler words."
+        }
     }
 }

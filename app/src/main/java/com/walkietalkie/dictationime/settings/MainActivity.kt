@@ -54,6 +54,7 @@ class MainActivity : AppCompatActivity() {
         val durationSeconds: Int,
         val createdAtMs: Long,
         val creditsUsedMinutes: Int,
+        val profileKey: String?,
         val isInaccurate: Boolean,
         val inaccurateReason: String?
     )
@@ -215,6 +216,9 @@ class MainActivity : AppCompatActivity() {
                             durationSeconds = item.optInt("durationSeconds", 0).coerceAtLeast(0),
                             createdAtMs = item.optLong("createdAt", 0L),
                             creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0),
+                            profileKey = item.optString("profileKey", "").let { value ->
+                                if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
+                            },
                             isInaccurate = item.optBoolean("isInaccurate", false),
                             inaccurateReason = item.optString("inaccurateReason", "").let { value ->
                                 if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
@@ -263,6 +267,9 @@ class MainActivity : AppCompatActivity() {
                             durationSeconds = item.optInt("durationSeconds", 0).coerceAtLeast(0),
                             createdAtMs = item.optLong("createdAtMs", 0L),
                             creditsUsedMinutes = item.optInt("creditsUsedMinutes", 0).coerceAtLeast(0),
+                            profileKey = item.optString("profileKey", "").let { value ->
+                                if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
+                            },
                             isInaccurate = item.optBoolean("isInaccurate", false),
                             inaccurateReason = item.optString("inaccurateReason", "").let { value ->
                                 if (value.isBlank() || value.equals("null", ignoreCase = true)) null else value
@@ -286,6 +293,7 @@ class MainActivity : AppCompatActivity() {
                     .put("durationSeconds", item.durationSeconds)
                     .put("createdAtMs", item.createdAtMs)
                     .put("creditsUsedMinutes", item.creditsUsedMinutes)
+                    .put("profileKey", item.profileKey)
                     .put("isInaccurate", item.isInaccurate)
                     .put("inaccurateReason", item.inaccurateReason)
             )
@@ -369,6 +377,7 @@ class MainActivity : AppCompatActivity() {
                     .putExtra(TranscriptionDetailActivity.EXTRA_DURATION_SECONDS, item.durationSeconds)
                     .putExtra(TranscriptionDetailActivity.EXTRA_CREDITS_USED_MINUTES, item.creditsUsedMinutes)
                     .putExtra(TranscriptionDetailActivity.EXTRA_CREATED_AT_MS, item.createdAtMs)
+                    .putExtra(TranscriptionDetailActivity.EXTRA_PROFILE_KEY, item.profileKey)
                     .putExtra(TranscriptionDetailActivity.EXTRA_IS_INACCURATE, item.isInaccurate)
                     .putExtra(TranscriptionDetailActivity.EXTRA_INACCURATE_REASON, item.inaccurateReason)
                     .putExtra(

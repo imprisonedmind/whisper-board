@@ -158,9 +158,15 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
         val packageName = info?.packageName?.trim().orEmpty()
         if (packageName.isBlank() || packageName == this.packageName) {
             recognizer.currentAppPackage = null
+            val resolved = resolvePromptForPackage(null)
+            recognizer.currentPrompt = resolved.prompt
+            recognizer.currentProfileKey = resolved.profileKey
             return
         }
         recognizer.currentAppPackage = packageName
+        val resolved = resolvePromptForPackage(packageName)
+        recognizer.currentPrompt = resolved.prompt
+        recognizer.currentProfileKey = resolved.profileKey
         val now = System.currentTimeMillis()
         val previousTouch = lastProfileTouchMs[packageName] ?: 0L
         if (now - previousTouch < 30_000L) {
@@ -175,6 +181,34 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
                 AppProfilesStore.touchAppProfile(this@DictationImeService, packageName, now)
             }
         }
+    }
+
+    private data class ResolvedProfilePrompt(
+        val prompt: String?,
+        val profileKey: String?
+    )
+
+    private fun resolvePromptForPackage(packageName: String?): ResolvedProfilePrompt {
+        val profiles = AppProfilesStore.getCachedProfiles(this)
+        val appPrompt = packageName
+            ?.takeIf { it.isNotBlank() }
+            ?.let { profiles.appPrompts[it] }
+            ?.trim()
+            .orEmpty()
+        if (appPrompt.isNotBlank()) {
+            return ResolvedProfilePrompt(
+                prompt = appPrompt,
+                profileKey = packageName
+            )
+        }
+        val defaultPrompt = profiles.defaultPrompt.trim()
+        if (defaultPrompt.isNotBlank()) {
+            return ResolvedProfilePrompt(
+                prompt = defaultPrompt,
+                profileKey = "default"
+            )
+        }
+        return ResolvedProfilePrompt(prompt = null, profileKey = null)
     }
 
     private fun handleMicTap() {

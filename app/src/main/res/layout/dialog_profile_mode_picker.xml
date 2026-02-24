@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="18dp"
+    android:layout_marginEnd="18dp"
+    android:background="@drawable/bg_card"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/dialogModeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/ink"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/dialogModeBody"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/app_profiles_mode_body"
+        android:textColor="@color/ink_muted"
+        android:textSize="13sp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/dialogModeCustomButton"
+        style="@style/Widget.DictationIme.PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:background="@drawable/bg_primary_button"
+        android:backgroundTint="@null"
+        android:minHeight="48dp"
+        android:text="@string/app_profiles_mode_custom"
+        android:textColor="@color/on_primary" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/dialogModeRecommendedButton"
+        style="@style/Widget.DictationIme.PrimaryButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_primary_button"
+        android:backgroundTint="@null"
+        android:minHeight="48dp"
+        android:text="@string/app_profiles_mode_recommended"
+        android:textColor="@color/on_primary" />
+</LinearLayout>

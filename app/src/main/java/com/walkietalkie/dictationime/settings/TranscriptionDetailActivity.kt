@@ -49,6 +49,7 @@ class TranscriptionDetailActivity : AppCompatActivity() {
         val durationSeconds = intent.getIntExtra(EXTRA_DURATION_SECONDS, 0).coerceAtLeast(0)
         requestId = intent.getStringExtra(EXTRA_REQUEST_ID).orEmpty()
         val createdAtLabel = intent.getStringExtra(EXTRA_CREATED_AT_LABEL).orEmpty()
+        val profileKey = intent.getStringExtra(EXTRA_PROFILE_KEY).orEmpty()
         isInaccurate = intent.getBooleanExtra(EXTRA_IS_INACCURATE, false)
         inaccurateReason = intent.getStringExtra(EXTRA_INACCURATE_REASON).orEmpty().ifBlank { null }
 
@@ -58,6 +59,15 @@ class TranscriptionDetailActivity : AppCompatActivity() {
             getString(R.string.history_detail_meta_time, createdAtLabel.ifBlank { "Unknown" })
         findViewById<TextView>(R.id.metaDuration).text =
             getString(R.string.history_detail_meta_duration, formatDuration(durationSeconds))
+        findViewById<TextView>(R.id.metaProfile).text =
+            getString(
+                R.string.history_detail_meta_profile,
+                when {
+                    profileKey.equals("default", ignoreCase = true) -> "Default profile"
+                    profileKey.isBlank() -> "None"
+                    else -> profileKey
+                }
+            )
         findViewById<TextView>(R.id.metaRequestId).text =
             getString(R.string.history_detail_meta_request, requestId.ifBlank { "N/A" })
 
@@ -229,6 +239,7 @@ class TranscriptionDetailActivity : AppCompatActivity() {
         const val EXTRA_CREDITS_USED_MINUTES = "extra_credits_used_minutes"
         const val EXTRA_CREATED_AT_MS = "extra_created_at_ms"
         const val EXTRA_CREATED_AT_LABEL = "extra_created_at_label"
+        const val EXTRA_PROFILE_KEY = "extra_profile_key"
         const val EXTRA_IS_INACCURATE = "extra_is_inaccurate"
         const val EXTRA_INACCURATE_REASON = "extra_inaccurate_reason"
     }

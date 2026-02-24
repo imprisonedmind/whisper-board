@@ -31,6 +31,10 @@ class WhisperApiRecognizer(
     private var activeModelId: String? = null
     @Volatile
     var currentAppPackage: String? = null
+    @Volatile
+    var currentPrompt: String? = null
+    @Volatile
+    var currentProfileKey: String? = null
 
     override suspend fun warmup(modelId: String): Result<Unit> {
         return lock.withLock {
@@ -60,6 +64,13 @@ class WhisperApiRecognizer(
                             "audio.wav",
                             wavBytes.toRequestBody("audio/wav".toMediaType())
                         )
+                    val supportsPrompt = modelId != "gpt-4o-transcribe-diarize"
+                    if (supportsPrompt) {
+                        currentPrompt
+                            ?.trim()
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { builder.addFormDataPart("prompt", it) }
+                    }
                     if (!config.useOpenAiDirect) {
                         builder.addFormDataPart("duration_ms", durationMs.toString())
                         builder.addFormDataPart("device_id", AuthStore.getOrCreateDeviceId(context))
@@ -67,6 +78,10 @@ class WhisperApiRecognizer(
                             ?.trim()
                             ?.takeIf { it.isNotBlank() }
                             ?.let { builder.addFormDataPart("app_package", it) }
+                        currentProfileKey
+                            ?.trim()
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { builder.addFormDataPart("profile_key", it) }
                     }
                     val requestBody = builder.build()
 
