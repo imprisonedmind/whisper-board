@@ -1,8 +1,11 @@
 package com.walkietalkie.dictationime.settings
 
+import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.view.ViewGroup
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
@@ -11,7 +14,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.R
@@ -30,11 +35,23 @@ import java.text.DateFormat
 import java.util.Date
 
 class DataPrivacyActivity : AppCompatActivity() {
+    companion object {
+        private const val TRACKING_PREFS_NAME = "walkie_data_tracking"
+        private const val KEY_TRACK_APP_PROFILES = "track_app_profiles"
+        private const val KEY_TRACK_TRANSCRIPTION_TEXT = "track_transcription_text"
+        private const val KEY_TRACK_AUDIO_FILES = "track_audio_files"
+    }
+
     private val client = OkHttpClient()
     private lateinit var statusText: TextView
     private lateinit var deleteDataButton: Button
     private lateinit var cancelDeletionButton: Button
     private lateinit var progress: ProgressBar
+    private lateinit var appProfilesTrackingSwitch: SwitchCompat
+    private lateinit var transcriptionTrackingSwitch: SwitchCompat
+    private lateinit var audioFilesTrackingSwitch: SwitchCompat
+    private var suppressTrackingToggleCallback = false
+    private var trackingConfirmDialog: Dialog? = null
     private var hasRequestedDeletion = false
     private val dateFormatter: DateFormat by lazy { DateFormat.getDateInstance(DateFormat.MEDIUM) }
 
@@ -52,9 +69,23 @@ class DataPrivacyActivity : AppCompatActivity() {
         deleteDataButton = findViewById(R.id.deleteDataButton)
         cancelDeletionButton = findViewById(R.id.cancelDeletionButton)
         progress = findViewById(R.id.dataPrivacyProgress)
+        appProfilesTrackingSwitch = findViewById(R.id.appProfilesTrackingSwitch)
+        transcriptionTrackingSwitch = findViewById(R.id.transcriptionTrackingSwitch)
+        audioFilesTrackingSwitch = findViewById(R.id.audioFilesTrackingSwitch)
 
         applyDangerStyle(deleteDataButton)
         applyDangerStyle(cancelDeletionButton)
+        bindTrackingPreferenceSwitch(
+            toggle = appProfilesTrackingSwitch,
+            key = KEY_TRACK_APP_PROFILES,
+            disableBodyRes = R.string.data_tracking_disable_app_profiles_body
+        )
+        bindTrackingPreferenceSwitch(
+            toggle = transcriptionTrackingSwitch,
+            key = KEY_TRACK_TRANSCRIPTION_TEXT,
+            disableBodyRes = R.string.data_tracking_disable_transcription_body
+        )
+        bindTrackingPreferenceSwitch(audioFilesTrackingSwitch, KEY_TRACK_AUDIO_FILES)
 
         findViewById<ImageButton>(R.id.dataPrivacyBackButton).setOnClickListener { finish() }
         deleteDataButton.setOnClickListener { confirmDeletionRequest() }
@@ -64,6 +95,12 @@ class DataPrivacyActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         fetchDeletionStatus()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        trackingConfirmDialog?.dismiss()
+        trackingConfirmDialog = null
     }
 
     private fun confirmDeletionRequest() {
@@ -258,15 +295,95 @@ class DataPrivacyActivity : AppCompatActivity() {
         }
     }
 
+    private fun bindTrackingPreferenceSwitch(
+        toggle: SwitchCompat,
+        key: String,
+        disableBodyRes: Int? = null
+    ) {
+        val prefs = getSharedPreferences(TRACKING_PREFS_NAME, MODE_PRIVATE)
+        setTrackingSwitchChecked(toggle, prefs.getBoolean(key, true))
+        toggle.setOnCheckedChangeListener { _, isChecked ->
+            if (suppressTrackingToggleCallback) {
+                return@setOnCheckedChangeListener
+            }
+            if (!isChecked && disableBodyRes != null) {
+                showDisableTrackingConfirmation(
+                    body = getString(disableBodyRes),
+                    onConfirm = {
+                        prefs.edit().putBoolean(key, false).apply()
+                    },
+                    onCancel = {
+                        setTrackingSwitchChecked(toggle, true)
+                    }
+                )
+                return@setOnCheckedChangeListener
+            }
+            prefs.edit().putBoolean(key, isChecked).apply()
+        }
+    }
+
+    private fun setTrackingSwitchChecked(toggle: SwitchCompat, checked: Boolean) {
+        suppressTrackingToggleCallback = true
+        toggle.isChecked = checked
+        suppressTrackingToggleCallback = false
+    }
+
+    private fun showDisableTrackingConfirmation(
+        body: String,
+        onConfirm: () -> Unit,
+        onCancel: () -> Unit
+    ) {
+        trackingConfirmDialog?.dismiss()
+        val dialog = Dialog(this)
+        dialog.setContentView(R.layout.dialog_data_tracking_disable)
+        dialog.setCancelable(true)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        dialog.findViewById<TextView>(R.id.dialogTitle).text =
+            getString(R.string.data_tracking_disable_title)
+        dialog.findViewById<TextView>(R.id.dialogBody).text = body
+        val keepEnabledButton = dialog.findViewById<Button>(R.id.dialogCancelButton)
+        val turnOffButton = dialog.findViewById<Button>(R.id.dialogSubmitButton)
+
+        var actionHandled = false
+        keepEnabledButton.setOnClickListener {
+            actionHandled = true
+            dialog.dismiss()
+            onCancel()
+        }
+        turnOffButton.setOnClickListener {
+            actionHandled = true
+            dialog.dismiss()
+            onConfirm()
+        }
+
+        dialog.setOnCancelListener {
+            if (!actionHandled) {
+                onCancel()
+            }
+        }
+        dialog.setOnDismissListener {
+            if (trackingConfirmDialog === dialog) {
+                trackingConfirmDialog = null
+            }
+        }
+        trackingConfirmDialog = dialog
+        dialog.show()
+    }
+
     private fun applyDangerStyle(button: Button) {
-        button.backgroundTintList = null
+        ViewCompat.setBackgroundTintList(button, null)
         button.setBackgroundResource(R.drawable.bg_danger_button_states)
         button.setTextColor(Color.WHITE)
         button.alpha = 1f
     }
 
     private fun applyNeutralStyle(button: Button, disabled: Boolean) {
-        button.backgroundTintList = null
+        ViewCompat.setBackgroundTintList(button, null)
         button.setBackgroundResource(R.drawable.bg_card)
         button.setTextColor(
             ContextCompat.getColor(
