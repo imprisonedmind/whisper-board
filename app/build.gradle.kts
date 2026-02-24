@@ -17,32 +17,38 @@ android {
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        val localProperties = Properties().apply {
-            val localFile = rootProject.file("local.properties")
-            if (localFile.exists()) {
-                localFile.inputStream().use { load(it) }
+        fun envOrGradle(key: String): String? =
+            System.getenv(key)
+                ?: (project.findProperty(key) as String?)
+
+        val appMode = (envOrGradle("APP_MODE") ?: "dev").trim().lowercase()
+        val isOpenSourceMode = appMode == "dev" || appMode == "open_source" || appMode == "oss"
+        val appPropertiesFile = envOrGradle("APP_PROPERTIES_FILE") ?: if (isOpenSourceMode) "gradle.properties.dev" else ""
+        val modeProperties = Properties().apply {
+            if (appPropertiesFile.isNotBlank()) {
+                val modeFile = rootProject.file(appPropertiesFile)
+                if (modeFile.exists()) {
+                    modeFile.inputStream().use { load(it) }
+                }
             }
         }
-        val openAiApiKey = System.getenv("OPENAI_API_KEY")
-            ?: localProperties.getProperty("OPENAI_API_KEY")
-            ?: (project.findProperty("OPENAI_API_KEY") as String?)
-            ?: ""
-        val useOpenAiDirect = System.getenv("USE_OPENAI_DIRECT")
-            ?: localProperties.getProperty("USE_OPENAI_DIRECT")
-            ?: (project.findProperty("USE_OPENAI_DIRECT") as String?)
-            ?: "false"
-        val openAiBaseUrl = System.getenv("OPENAI_BASE_URL")
-            ?: localProperties.getProperty("OPENAI_BASE_URL")
-            ?: (project.findProperty("OPENAI_BASE_URL") as String?)
-            ?: "https://api.openai.com/v1"
-        val backendBaseUrl = System.getenv("BACKEND_BASE_URL")
-            ?: localProperties.getProperty("BACKEND_BASE_URL")
-            ?: (project.findProperty("BACKEND_BASE_URL") as String?)
-            ?: ""
+        fun envOrProp(key: String): String? =
+            System.getenv(key)
+                ?: (project.findProperty(key) as String?)
+                ?: modeProperties.getProperty(key)
+
+        val openAiApiKey = if (isOpenSourceMode) (envOrProp("OPENAI_API_KEY") ?: "") else ""
+        val openAiBaseUrl = envOrProp("OPENAI_BASE_URL") ?: "https://api.openai.com/v1"
+        val backendBaseUrl = envOrProp("BACKEND_BASE_URL") ?: ""
+        val enableBackendFeatures = (!isOpenSourceMode).toString()
+        val requireAuth = (!isOpenSourceMode).toString()
+
         buildConfigField("String", "OPENAI_API_KEY", "\"${openAiApiKey}\"")
         buildConfigField("String", "OPENAI_BASE_URL", "\"${openAiBaseUrl}\"")
         buildConfigField("String", "BACKEND_BASE_URL", "\"${backendBaseUrl}\"")
-        buildConfigField("boolean", "USE_OPENAI_DIRECT", useOpenAiDirect)
+        buildConfigField("String", "APP_MODE", "\"${appMode}\"")
+        buildConfigField("boolean", "ENABLE_BACKEND_FEATURES", enableBackendFeatures)
+        buildConfigField("boolean", "REQUIRE_AUTH", requireAuth)
     }
 
     buildTypes {

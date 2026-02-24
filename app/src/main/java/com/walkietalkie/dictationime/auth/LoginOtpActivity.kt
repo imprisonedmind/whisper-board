@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.R
+import com.walkietalkie.dictationime.config.AppModeConfig
 import com.walkietalkie.dictationime.settings.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -33,6 +34,11 @@ class LoginOtpActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!AppModeConfig.isAuthRequired) {
+            startActivity(Intent(this, MainActivity::class.java))
+            finish()
+            return
+        }
         setContentView(R.layout.activity_login_otp)
 
         email = intent.getStringExtra(EXTRA_EMAIL).orEmpty()

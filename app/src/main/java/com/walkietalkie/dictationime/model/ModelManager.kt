@@ -1,5 +1,6 @@
 package com.walkietalkie.dictationime.model
 
+import android.content.Context
 import com.walkietalkie.dictationime.openai.OpenAiConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -19,7 +20,10 @@ interface ModelManager {
 
 class ModelUnavailableException(message: String, cause: Throwable? = null) : Exception(message, cause)
 
-class RemoteModelManager(private val config: OpenAiConfig = OpenAiConfig) : ModelManager {
+class RemoteModelManager(
+    private val context: Context,
+    private val config: OpenAiConfig = OpenAiConfig
+) : ModelManager {
     private val lock = Mutex()
     @Volatile
     private var current: ModelInfo = ModelInfo(
@@ -32,7 +36,7 @@ class RemoteModelManager(private val config: OpenAiConfig = OpenAiConfig) : Mode
         return lock.withLock {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    if (!config.isConfigured()) {
+                    if (!config.isConfigured(context)) {
                         throw ModelUnavailableException("OpenAI API key missing")
                     }
 

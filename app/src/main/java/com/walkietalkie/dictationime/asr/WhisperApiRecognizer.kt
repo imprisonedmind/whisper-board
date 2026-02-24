@@ -87,7 +87,8 @@ class WhisperApiRecognizer(
 
                     var responsePayload: String? = null
                     val elapsed = measureTimeMillis {
-                        val openAiHeader = config.apiKey.takeIf { config.useOpenAiDirect && it.isNotBlank() }
+                        val configuredApiKey = config.apiKey(context)
+                        val openAiHeader = configuredApiKey.takeIf { config.useOpenAiDirect && it.isNotBlank() }
                             ?.let { "Bearer $it" }
 
                         var backendToken: String? = null
@@ -148,7 +149,7 @@ class WhisperApiRecognizer(
     override suspend fun close() = Unit
 
     private fun ensureConfigured() {
-        if (!config.isConfigured()) {
+        if (!config.isConfigured(context)) {
             val message = if (config.useOpenAiDirect) {
                 "OpenAI API key missing"
             } else {

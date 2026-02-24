@@ -23,6 +23,11 @@ object CreditStoreDataCache {
     private var cachedBalanceMinutes: Int? = null
     private val cachedPricesByCurrency = mutableMapOf<String, Map<String, String>>()
 
+    fun clearMemoryCache() {
+        cachedBalanceMinutes = null
+        cachedPricesByCurrency.clear()
+    }
+
     fun getCachedBalanceMinutes(context: Context): Int? {
         cachedBalanceMinutes?.let { return it }
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

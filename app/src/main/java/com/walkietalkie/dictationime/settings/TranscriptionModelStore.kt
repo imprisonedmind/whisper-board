@@ -3,6 +3,7 @@ package com.walkietalkie.dictationime.settings
 import android.content.Context
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.auth.AuthSessionManager
+import com.walkietalkie.dictationime.config.AppModeConfig
 import com.walkietalkie.dictationime.model.TranscriptionModels
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -21,6 +22,9 @@ object TranscriptionModelStore {
     }
 
     suspend fun fetchRemote(context: Context): String {
+        if (!AppModeConfig.backendFeaturesEnabled) {
+            return getCached(context)
+        }
         val token = AuthSessionManager.getValidAccessToken(context)
             ?: throw IOException("Login required")
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
@@ -50,6 +54,9 @@ object TranscriptionModelStore {
     suspend fun setSelectedModel(context: Context, modelId: String) {
         val normalized = TranscriptionModels.normalizeModelId(modelId)
         SettingsStore.setSelectedModel(context, normalized)
+        if (!AppModeConfig.backendFeaturesEnabled) {
+            return
+        }
 
         val token = AuthSessionManager.getValidAccessToken(context)
             ?: throw IOException("Login required")

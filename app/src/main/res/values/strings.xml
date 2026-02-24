@@ -106,6 +106,16 @@
     <string name="logged_out_cta">Log in</string>
     <string name="open_source_toggle_title">Open source mode</string>
     <string name="open_source_toggle_subtitle">Use your own OpenAI key and connect directly.</string>
+    <string name="profile_open_source_api_key_title">OpenAI API key</string>
+    <string name="profile_open_source_api_key_subtitle">Manage your local key for open-source mode</string>
+    <string name="open_source_api_key_title">OpenAI API key</string>
+    <string name="open_source_api_key_body">Used only in open-source mode. Saved on this device and preferred over the build-time key.</string>
+    <string name="open_source_api_key_dialog_title">OpenAI API key</string>
+    <string name="open_source_api_key_dialog_body">Used only in open-source mode. Saved on this device and preferred over the build-time key.</string>
+    <string name="open_source_api_key_hint">sk-...</string>
+    <string name="open_source_api_key_save">Save API key</string>
+    <string name="open_source_api_key_cancel">Cancel</string>
+    <string name="open_source_api_key_saved">API key saved.</string>
     <string name="credit_footer_links">Privacy Policy | Terms of Service | Questions</string>
     <string name="credit_disclaimer">Note: Purchased credits are valid for 2 years and cannot be refunded. All credits, purchased and earned, can only be used on Walkie Talkie and cannot be transferred or exchanged for cash.</string>
 

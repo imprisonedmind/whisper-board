@@ -28,6 +28,10 @@ object TransactionHistoryDataCache {
     @Volatile
     private var cachedPurchases: List<PurchaseRecord>? = null
 
+    fun clearMemoryCache() {
+        cachedPurchases = null
+    }
+
     fun getCachedPurchases(context: Context): List<PurchaseRecord>? {
         cachedPurchases?.let { return it }
         val raw = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

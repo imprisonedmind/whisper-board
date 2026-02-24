@@ -1,19 +1,25 @@
 package com.walkietalkie.dictationime.openai
 
+import android.content.Context
 import com.walkietalkie.dictationime.BuildConfig
+import com.walkietalkie.dictationime.config.AppModeConfig
 
 object OpenAiConfig {
     val useOpenAiDirect: Boolean
-        get() = BuildConfig.USE_OPENAI_DIRECT
+        get() = AppModeConfig.isOpenSourceMode
 
-    val apiKey: String
-        get() = if (useOpenAiDirect) BuildConfig.OPENAI_API_KEY else ""
+    fun apiKey(context: Context? = null): String {
+        if (!useOpenAiDirect) return ""
+        val runtimeKey = context?.let { OpenAiKeyStore.getApiKey(it) }.orEmpty()
+        if (runtimeKey.isNotBlank()) return runtimeKey
+        return BuildConfig.OPENAI_API_KEY
+    }
 
     val baseUrl: String
         get() = if (useOpenAiDirect) BuildConfig.OPENAI_BASE_URL else BuildConfig.BACKEND_BASE_URL
 
-    fun isConfigured(): Boolean {
+    fun isConfigured(context: Context? = null): Boolean {
         if (baseUrl.isBlank()) return false
-        return if (useOpenAiDirect) apiKey.isNotBlank() else true
+        return if (useOpenAiDirect) apiKey(context).isNotBlank() else true
     }
 }

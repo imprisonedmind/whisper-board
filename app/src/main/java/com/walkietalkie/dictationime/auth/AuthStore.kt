@@ -2,6 +2,10 @@ package com.walkietalkie.dictationime.auth
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.walkietalkie.dictationime.config.AppModeConfig
+import com.walkietalkie.dictationime.settings.CreditStoreDataCache
+import com.walkietalkie.dictationime.settings.DataDeletionStatusDataCache
+import com.walkietalkie.dictationime.settings.TransactionHistoryDataCache
 import java.util.UUID
 
 object AuthStore {
@@ -12,6 +16,17 @@ object AuthStore {
     private const val KEY_EMAIL = "email"
     private const val KEY_DEVICE_ID = "device_id"
     private const val EXPIRY_SKEW_SECONDS = 30L
+    private val PREFS_TO_CLEAR_ON_LOGOUT = listOf(
+        "walkie_auth",
+        "walkie_settings",
+        "walkie_openai",
+        "home_dashboard_cache",
+        "credit_store_cache",
+        "walkie_data_tracking",
+        "walkie_app_profiles",
+        "data_deletion_status_cache",
+        "transaction_history_cache"
+    )
 
     private fun prefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -41,6 +56,7 @@ object AuthStore {
     }
 
     fun isSignedIn(context: Context): Boolean {
+        if (!AppModeConfig.isAuthRequired) return true
         if (isAccessTokenValid(context)) return true
         return !getRefreshToken(context).isNullOrBlank()
     }
@@ -61,12 +77,17 @@ object AuthStore {
     }
 
     fun clearSession(context: Context) {
-        prefs(context).edit()
-            .remove(KEY_ACCESS_TOKEN)
-            .remove(KEY_REFRESH_TOKEN)
-            .remove(KEY_EXPIRES_AT)
-            .remove(KEY_EMAIL)
-            .apply()
+        PREFS_TO_CLEAR_ON_LOGOUT.forEach { name ->
+            context.getSharedPreferences(name, Context.MODE_PRIVATE)
+                .edit()
+                .clear()
+                .commit()
+        }
+        CreditStoreDataCache.clearMemoryCache()
+        DataDeletionStatusDataCache.clearMemoryCache()
+        TransactionHistoryDataCache.clearMemoryCache()
+        context.cacheDir?.deleteRecursively()
+        context.cacheDir?.mkdirs()
     }
 
     fun getOrCreateDeviceId(context: Context): String {

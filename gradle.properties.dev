@@ -1,0 +1,4 @@
+# Active app mode
+APP_MODE=dev
+OPENAI_API_KEY=your_openai_api_key_here
+

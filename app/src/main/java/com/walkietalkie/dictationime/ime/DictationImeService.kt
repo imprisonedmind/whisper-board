@@ -17,6 +17,7 @@ import com.walkietalkie.dictationime.audio.AndroidAudioCapture
 import com.walkietalkie.dictationime.audio.extractAudioFeatures
 import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
+import com.walkietalkie.dictationime.config.AppModeConfig
 import com.walkietalkie.dictationime.model.DEFAULT_MODEL_ID
 import com.walkietalkie.dictationime.model.RemoteModelManager
 import com.walkietalkie.dictationime.settings.CreditStoreActivity
@@ -34,7 +35,7 @@ import kotlinx.coroutines.runBlocking
 class DictationImeService : InputMethodService(), CoroutineScope by MainScope() {
     private val logTag = "DictationImeService"
 
-    private val modelManager by lazy { RemoteModelManager() }
+    private val modelManager by lazy { RemoteModelManager(this) }
     private val recognizer by lazy { WhisperApiRecognizer(this) }
     private val audioCapture by lazy { AndroidAudioCapture() }
 
@@ -120,7 +121,7 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     }
 
     private fun applyAuthMode() {
-        val isSignedIn = AuthStore.isSignedIn(this)
+        val isSignedIn = !AppModeConfig.isAuthRequired || AuthStore.isSignedIn(this)
         keyboardView?.setLoggedOutMode(!isSignedIn)
     }
 
@@ -146,6 +147,9 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
 
         // Cache first so profile list updates immediately even if sync fails.
         AppProfilesStore.cacheKnownAppsLocal(this, listOf(packageName))
+        if (!AppModeConfig.backendFeaturesEnabled) {
+            return
+        }
         launch {
             runCatching {
                 AppProfilesStore.touchAppProfile(this@DictationImeService, packageName, now)
@@ -265,12 +269,20 @@ class DictationImeService : InputMethodService(), CoroutineScope by MainScope() 
     }
 
     private fun openLoginScreen() {
+        if (!AppModeConfig.isAuthRequired) {
+            openSettingsScreen()
+            return
+        }
         val intent = Intent(this, LoginEmailActivity::class.java)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startActivity(intent)
     }
 
     private fun openCreditStoreScreen() {
+        if (!AppModeConfig.backendFeaturesEnabled) {
+            openSettingsScreen()
+            return
+        }
         launch {
             CreditStoreDataCache.prefetch(this@DictationImeService)
         }

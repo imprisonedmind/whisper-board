@@ -16,6 +16,7 @@ import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.auth.AuthSessionManager
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.auth.AuthStore
+import com.walkietalkie.dictationime.config.AppModeConfig
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import com.walkietalkie.dictationime.ui.RoundedCircularProgressView
 import kotlinx.coroutines.Dispatchers
@@ -63,7 +64,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        if (!AuthStore.isSignedIn(this)) {
+        if (AppModeConfig.isAuthRequired && !AuthStore.isSignedIn(this)) {
             startActivity(Intent(this, LoginEmailActivity::class.java))
             finish()
             return
@@ -75,6 +76,7 @@ class MainActivity : AppCompatActivity() {
         val navHomeTab: LinearLayout = findViewById(R.id.navHomeTab)
         val navSettingsTab: LinearLayout = findViewById(R.id.navSettingsTab)
         val creditsCard: LinearLayout = findViewById(R.id.creditsCard)
+        val historyCard: LinearLayout = findViewById(R.id.historyCard)
         val creditsInfoIcon: ImageView = findViewById(R.id.creditsInfoIcon)
         creditStoreCard = findViewById(R.id.creditStoreCard)
         buyCreditsButton = findViewById(R.id.buyCreditsButton)
@@ -84,13 +86,19 @@ class MainActivity : AppCompatActivity() {
         creditsBalanceText = findViewById(R.id.creditsBalanceText)
         creditsUsageValue = findViewById(R.id.creditsUsageValue)
 
-        val appliedCreditsCache = applyCachedCredits()
-        val appliedHistoryCache = applyCachedHistory()
-        if (!appliedCreditsCache) {
-            applyCreditsState(0, 0)
-        }
-        if (!appliedHistoryCache) {
-            renderHistory(emptyList())
+        if (AppModeConfig.backendFeaturesEnabled) {
+            val appliedCreditsCache = applyCachedCredits()
+            val appliedHistoryCache = applyCachedHistory()
+            if (!appliedCreditsCache) {
+                applyCreditsState(0, 0)
+            }
+            if (!appliedHistoryCache) {
+                renderHistory(emptyList())
+            }
+        } else {
+            creditsCard.visibility = View.GONE
+            historyCard.visibility = View.GONE
+            creditStoreCard.visibility = View.GONE
         }
 
         creditsCard.setOnClickListener {
@@ -114,6 +122,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        if (!AppModeConfig.backendFeaturesEnabled) {
+            return
+        }
         loadCredits()
         loadHistory()
         lifecycleScope.launch {
@@ -122,6 +133,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun openCreditStore() {
+        if (!AppModeConfig.backendFeaturesEnabled) return
         lifecycleScope.launch {
             CreditStoreDataCache.prefetch(this@MainActivity)
         }
@@ -129,6 +141,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadCredits() {
+        if (!AppModeConfig.backendFeaturesEnabled) return
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) return
 
@@ -181,6 +194,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun loadHistory() {
+        if (!AppModeConfig.backendFeaturesEnabled) return
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) return
 

@@ -25,6 +25,10 @@ object DataDeletionStatusDataCache {
     @Volatile
     private var cachedStatus: DeletionStatus? = null
 
+    fun clearMemoryCache() {
+        cachedStatus = null
+    }
+
     fun getCachedStatus(context: Context): DeletionStatus? {
         cachedStatus?.let { return it }
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)

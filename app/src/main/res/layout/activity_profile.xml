@@ -25,6 +25,7 @@
             android:tint="@color/ink" />
 
         <LinearLayout
+            android:id="@+id/profileIdentitySection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -105,10 +106,65 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/dataPrivacyDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
             android:background="@color/border_subtle" />
+
+        <LinearLayout
+            android:id="@+id/openSourceApiKeyRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_info_circle"
+                android:tint="@color/ink" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/profile_open_source_api_key_title"
+                    android:textColor="@color/ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/profile_open_source_api_key_subtitle"
+                    android:textColor="@color/ink_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_chevron_right"
+                android:tint="@color/ink_muted" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/openSourceApiKeyDivider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/border_subtle"
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/dataPrivacyRow"
@@ -156,6 +212,7 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/appProfilesDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
@@ -207,6 +264,7 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/modelSelectionDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
@@ -259,6 +317,7 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/transactionHistoryDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
@@ -310,6 +369,7 @@
         </LinearLayout>
 
         <View
+            android:id="@+id/creditStoreDivider"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"

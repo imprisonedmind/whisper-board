@@ -77,7 +77,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun updateApiStatus() {
-        val display = if (OpenAiConfig.isConfigured()) {
+        val display = if (OpenAiConfig.isConfigured(this)) {
             getString(R.string.api_ready)
         } else {
             getString(R.string.api_missing)
