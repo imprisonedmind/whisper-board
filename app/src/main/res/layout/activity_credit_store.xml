@@ -2,7 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home">
+    android:background="@drawable/bg_home_brand">
 
     <ScrollView
         android:id="@+id/creditStoreScroll"
@@ -32,7 +32,7 @@
                 android:background="@null"
                 android:contentDescription="@string/back"
                 android:src="@drawable/ic_back"
-                android:tint="@color/ink" />
+                android:tint="@color/home_ink" />
 
             <TextView
                 android:layout_width="0dp"
@@ -40,7 +40,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/credit_balance_title"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -49,7 +49,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/credit_rules"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="14sp" />
         </LinearLayout>
 
@@ -57,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:background="@drawable/bg_card"
+            android:background="@drawable/bg_home_card_brand"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -65,7 +65,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/credit_total_label"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -75,7 +75,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/credit_total_value"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="36sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -85,7 +85,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:background="@drawable/bg_card"
+            android:background="@drawable/bg_home_card_brand"
             android:clickable="true"
             android:focusable="true"
             android:foreground="?attr/selectableItemBackground"
@@ -107,7 +107,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/currency_label"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
@@ -117,7 +117,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:text="USD"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="14sp" />
 
             <TextView
@@ -126,14 +126,14 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="6dp"
                 android:text="United States Dollar"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="14sp" />
 
             <ImageView
                 android:layout_width="14dp"
                 android:layout_height="14dp"
                 android:src="@drawable/ic_chevron_right"
-                android:tint="@color/ink_muted" />
+                android:tint="@color/home_ink_muted" />
         </LinearLayout>
 
         <GridLayout
@@ -149,7 +149,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -166,14 +166,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="85"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -187,7 +187,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_150"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -196,7 +196,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -213,14 +213,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="170"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -234,7 +234,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_300"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -243,7 +243,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -260,14 +260,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="500"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -281,7 +281,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_500"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -291,7 +291,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -308,14 +308,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="1000"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -329,7 +329,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_1000"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -339,7 +339,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -356,14 +356,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="1500"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -377,7 +377,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_1500"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
 
@@ -387,7 +387,7 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option"
+                android:background="@drawable/bg_credit_option_brand"
                 android:gravity="start"
                 android:orientation="vertical"
                 android:padding="12dp">
@@ -404,14 +404,14 @@
                         android:layout_height="16dp"
                         android:layout_marginEnd="6dp"
                         android:src="@drawable/ic_sparkle"
-                        android:tint="@color/accent" />
+                        android:tint="@color/home_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:includeFontPadding="false"
                         android:text="2500"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="16sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -425,7 +425,7 @@
                     android:includeFontPadding="false"
                     android:paddingStart="22dp"
                     android:text="@string/credit_price_2500"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="12sp" />
             </LinearLayout>
         </GridLayout>
@@ -435,7 +435,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@drawable/bg_primary_button"
+            android:background="@drawable/bg_settings_primary_button_states"
             android:backgroundTint="@null"
             android:minHeight="52dp"
             style="@style/Widget.DictationIme.PrimaryButton"
@@ -453,7 +453,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/credit_footer_links"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="12sp" />
         </LinearLayout>
 
@@ -462,7 +462,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
             android:text="@string/credit_disclaimer"
-            android:textColor="@color/ink_muted"
+            android:textColor="@color/home_ink_muted"
             android:textSize="12sp" />
 
     </LinearLayout>

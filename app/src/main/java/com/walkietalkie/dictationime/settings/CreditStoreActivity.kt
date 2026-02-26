@@ -167,8 +167,8 @@ class CreditStoreActivity : AppCompatActivity() {
     }
 
     private fun selectOption(view: View) {
-        selectedOption?.setBackgroundResource(R.drawable.bg_credit_option)
-        view.setBackgroundResource(R.drawable.bg_credit_option_selected)
+        selectedOption?.setBackgroundResource(R.drawable.bg_credit_option_brand)
+        view.setBackgroundResource(R.drawable.bg_credit_option_brand_selected)
         selectedOption = view
         updateBuyButton()
     }

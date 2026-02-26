@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home"
+    android:background="@drawable/bg_home_brand"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -27,7 +27,7 @@
                 android:background="@null"
                 android:contentDescription="@string/back"
                 android:src="@drawable/ic_back"
-                android:tint="@color/ink" />
+                android:tint="@color/home_ink" />
 
             <TextView
                 android:layout_width="0dp"
@@ -35,7 +35,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/history_screen_title"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -56,7 +56,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/purchase_history_empty"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="13sp" />
 
             <LinearLayout

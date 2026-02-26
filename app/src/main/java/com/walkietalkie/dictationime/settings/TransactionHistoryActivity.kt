@@ -128,14 +128,14 @@ class TransactionHistoryActivity : AppCompatActivity() {
             val row = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = android.view.Gravity.CENTER_VERTICAL
-                background = getDrawable(R.drawable.bg_card)
+                background = getDrawable(R.drawable.bg_home_card_brand)
                 setPadding(dp(10), dp(9), dp(10), dp(9))
                 isClickable = true
                 isFocusable = true
             }
 
             val detailText = TextView(this).apply {
-                setTextColor(getColor(R.color.ink))
+                setTextColor(getColor(R.color.home_ink))
                 textSize = 13f
                 text = if (item.minutes > 0) {
                     "${item.minutes} minutes • ${formatMoney(item.amount, item.currency)}"
@@ -156,10 +156,10 @@ class TransactionHistoryActivity : AppCompatActivity() {
                 gravity = android.view.Gravity.END or android.view.Gravity.CENTER_VERTICAL
             }
             val divider = View(this).apply {
-                setBackgroundColor(getColor(R.color.border_subtle))
+                setBackgroundColor(getColor(R.color.home_border_subtle))
             }
             val durationText = TextView(this).apply {
-                setTextColor(getColor(R.color.ink_muted))
+                setTextColor(getColor(R.color.home_ink_muted))
                 textSize = 12f
                 text = formatRelativeTime(item.createdAtMs)
                 gravity = android.view.Gravity.END

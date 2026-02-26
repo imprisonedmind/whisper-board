@@ -47,4 +47,22 @@
     <color name="te_icon_dark">#242724</color>
     <color name="te_label">#2E322E</color>
     <color name="te_ring_highlight">#E3E7E0</color>
+
+    <color name="home_surface">#E8F6EE</color>
+    <color name="home_surface_depth">#CFE8DC</color>
+    <color name="home_surface_card">#F3FBF6</color>
+    <color name="home_ink">#0F2B1E</color>
+    <color name="home_ink_muted">#3E6A57</color>
+    <color name="home_border_subtle">#B7D7C4</color>
+    <color name="home_primary">#136A45</color>
+    <color name="home_primary_pressed">#0E5538</color>
+    <color name="home_primary_soft">#B9E6CF</color>
+    <color name="home_ring_indicator">#31C48D</color>
+    <color name="home_ring_track">#BFEAD8</color>
+    <color name="home_nav_inactive">#5C8A76</color>
+
+    <color name="settings_primary_start">#1FA66F</color>
+    <color name="settings_primary_end">#136A45</color>
+    <color name="settings_primary_pressed_start">#18865B</color>
+    <color name="settings_primary_pressed_end">#0F5639</color>
 </resources>

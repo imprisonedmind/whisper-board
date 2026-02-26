@@ -20,7 +20,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="10dp"
-        android:textColor="@color/ink"
+        android:textColor="@color/home_ink"
         android:textSize="14sp"
         android:textStyle="bold" />
 
@@ -28,6 +28,6 @@
         android:id="@+id/currencyName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/ink_muted"
+        android:textColor="@color/home_ink_muted"
         android:textSize="14sp" />
 </LinearLayout>

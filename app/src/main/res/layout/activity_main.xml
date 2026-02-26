@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home"
+    android:background="@drawable/bg_home_brand"
     android:fitsSystemWindows="true"
     android:orientation="vertical">
 
@@ -26,7 +26,7 @@
                 android:id="@+id/devModeBanner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_card"
+                android:background="@drawable/bg_home_card_brand"
                 android:orientation="vertical"
                 android:padding="16dp"
                 android:visibility="gone">
@@ -35,7 +35,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/dev_mode_banner_title"
-                    android:textColor="@color/ink"
+                    android:textColor="@color/home_ink"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
                     android:text="@string/dev_mode_banner_body"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="13sp" />
             </LinearLayout>
 
@@ -53,7 +53,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card"
+                android:background="@drawable/bg_home_card_brand"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
@@ -70,7 +70,7 @@
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/credits_title"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -80,7 +80,7 @@
                         android:layout_height="20dp"
                         android:contentDescription="@string/credits_info_hint"
                         android:src="@drawable/ic_info_circle"
-                        app:tint="@color/ink_muted" />
+                        app:tint="@color/home_ink_muted" />
                 </LinearLayout>
 
                 <FrameLayout
@@ -92,13 +92,13 @@
 
                     <com.walkietalkie.dictationime.ui.RoundedCircularProgressView
                         android:id="@+id/creditsRing"
-                        android:layout_width="180dp"
-                        android:layout_height="180dp"
+                        android:layout_width="196dp"
+                        android:layout_height="196dp"
                         android:layout_gravity="center"
-                        app:rcp_indicatorColor="@color/accent"
+                        app:rcp_indicatorColor="@color/home_ring_indicator"
                         app:rcp_progress="0.0"
-                        app:rcp_strokeWidth="12dp"
-                        app:rcp_trackColor="@color/accent_soft" />
+                        app:rcp_strokeWidth="14dp"
+                        app:rcp_trackColor="@color/home_ring_track" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -111,7 +111,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/credits_left_title"
-                            android:textColor="@color/ink_muted"
+                            android:textColor="@color/home_ink_muted"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 
@@ -121,7 +121,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
                             android:text="@string/credits_balance_value"
-                            android:textColor="@color/ink"
+                            android:textColor="@color/home_ring_indicator"
                             android:textSize="34sp"
                             android:textStyle="bold" />
 
@@ -129,7 +129,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/credits_balance_unit"
-                            android:textColor="@color/ink_muted"
+                            android:textColor="@color/home_ink_muted"
                             android:textSize="12sp" />
                     </LinearLayout>
                 </FrameLayout>
@@ -145,7 +145,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/credits_usage_label"
-                        android:textColor="@color/ink_muted"
+                        android:textColor="@color/home_ink_muted"
                         android:textSize="13sp" />
 
                     <TextView
@@ -154,7 +154,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:text="@string/credits_usage_value"
-                        android:textColor="@color/ink"
+                        android:textColor="@color/home_ink"
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -172,7 +172,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/history_title"
-                    android:textColor="@color/ink"
+                    android:textColor="@color/home_ink"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -182,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:text="@string/history_empty"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="13sp" />
 
                 <LinearLayout
@@ -197,7 +197,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/bg_card"
+                android:background="@drawable/bg_home_card_brand"
                 android:clickable="true"
                 android:focusable="true"
                 android:orientation="vertical"
@@ -207,7 +207,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/credit_store_title"
-                    android:textColor="@color/ink"
+                    android:textColor="@color/home_ink"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -216,7 +216,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:text="@string/credit_store_body"
-                    android:textColor="@color/ink_muted"
+                    android:textColor="@color/home_ink_muted"
                     android:textSize="14sp" />
 
                 <Button
@@ -225,7 +225,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:background="@drawable/bg_primary_button"
+                    android:background="@drawable/bg_home_primary_button_states"
                     android:backgroundTint="@null"
                     android:minHeight="48dp"
                     android:text="@string/credit_store_button"
@@ -241,7 +241,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="14dp"
-        android:background="@drawable/bg_card"
+        android:background="@drawable/bg_home_card_brand"
         android:gravity="center"
         android:orientation="horizontal"
         android:paddingTop="10dp"
@@ -264,13 +264,13 @@
                 android:layout_height="16dp"
                 android:layout_marginEnd="6dp"
                 android:src="@drawable/ic_dashboard"
-                android:tint="@color/accent" />
+                android:tint="@color/home_primary" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/nav_home"
-                android:textColor="@color/accent"
+                android:textColor="@color/home_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>
@@ -292,13 +292,13 @@
                 android:layout_height="16dp"
                 android:layout_marginEnd="6dp"
                 android:src="@drawable/ic_settings"
-                android:tint="@color/ink_muted" />
+                android:tint="@color/home_nav_inactive" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/nav_settings"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_nav_inactive"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </LinearLayout>

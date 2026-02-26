@@ -19,7 +19,7 @@
             android:id="@+id/modelOptionTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/ink"
+            android:textColor="@color/home_ink"
             android:textSize="14sp"
             android:textStyle="bold" />
 
@@ -28,7 +28,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="3dp"
-            android:textColor="@color/ink_muted"
+            android:textColor="@color/home_ink_muted"
             android:textSize="12sp" />
     </LinearLayout>
 
@@ -41,7 +41,7 @@
         android:paddingTop="4dp"
         android:paddingEnd="10dp"
         android:paddingBottom="4dp"
-        android:textColor="@color/ink_muted"
+        android:textColor="@color/home_ink_muted"
         android:textSize="11sp"
         android:textStyle="bold" />
 </LinearLayout>

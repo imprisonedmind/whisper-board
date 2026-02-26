@@ -3,7 +3,7 @@
     android:id="@+id/settingsScroll"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_home"
+    android:background="@drawable/bg_home_brand"
     android:fitsSystemWindows="true">
 
     <LinearLayout
@@ -28,7 +28,7 @@
                 android:background="@null"
                 android:contentDescription="@string/back"
                 android:src="@drawable/ic_back"
-                android:tint="@color/ink" />
+                android:tint="@color/home_ink" />
 
             <TextView
                 android:layout_width="0dp"
@@ -36,7 +36,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:text="@string/device_settings_title"
-                android:textColor="@color/ink"
+                android:textColor="@color/home_ink"
                 android:textSize="18sp"
                 android:textStyle="bold" />
 
@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@drawable/bg_card"
+            android:background="@drawable/bg_home_card_brand"
             android:orientation="vertical"
             android:padding="16dp">
 
@@ -58,7 +58,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/settings_subtitle"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="14sp" />
 
             <TextView
@@ -66,7 +66,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:textColor="@color/ink_muted"
+                android:textColor="@color/home_ink_muted"
                 android:textSize="14sp" />
 
             <Button
@@ -74,7 +74,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:background="@drawable/bg_primary_button"
+                android:background="@drawable/bg_settings_primary_button_states"
                 android:backgroundTint="@null"
                 android:minHeight="56dp"
                 android:paddingTop="12dp"
@@ -88,7 +88,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_primary_button"
+                android:background="@drawable/bg_settings_primary_button_states"
                 android:backgroundTint="@null"
                 android:minHeight="56dp"
                 android:paddingTop="12dp"
@@ -102,7 +102,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_primary_button"
+                android:background="@drawable/bg_settings_primary_button_states"
                 android:backgroundTint="@null"
                 android:minHeight="56dp"
                 android:paddingTop="12dp"
