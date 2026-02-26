@@ -2,7 +2,7 @@
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
     <gradient
         android:angle="90"
-        android:startColor="@color/settings_primary_pressed_start"
-        android:endColor="@color/settings_primary_pressed_end" />
+        android:startColor="@color/home_ring_indicator"
+        android:endColor="@color/home_ring_indicator" />
     <corners android:radius="14dp" />
 </shape>
