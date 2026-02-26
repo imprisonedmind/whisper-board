@@ -27,16 +27,25 @@ class CreditStoreActivity : AppCompatActivity() {
         val flagEmoji: String
     )
 
+    private data class MonthlyCardViews(
+        val card: View,
+        val badge: TextView,
+        val title: TextView,
+        val subtitle: TextView,
+        val price: TextView,
+        val button: Button
+    )
+
     private var selectedOption: View? = null
     private lateinit var buyButton: Button
+    private lateinit var monthlyCards: List<MonthlyCardViews>
     private lateinit var currencyFlag: TextView
     private lateinit var currencyCode: TextView
     private lateinit var currencyName: TextView
-    private lateinit var totalCreditsValue: TextView
+    private lateinit var popular450Badge: TextView
     private lateinit var scrollView: View
     private lateinit var loadingContainer: View
     private var selectedCurrency = "USD"
-    private var hasResumedOnce = false
     private var blockingInitialLoad = false
     private var waitingInitialLoads = 0
 
@@ -47,13 +56,14 @@ class CreditStoreActivity : AppCompatActivity() {
         CurrencyOption("GBP", "British Pound", "🇬🇧")
     )
     private val packPrices = mutableMapOf<String, String>()
+    private val packSavings = mutableMapOf<String, String>()
     private val packByOptionId = mapOf(
-        R.id.option149 to "pack_150",
-        R.id.option290 to "pack_300",
-        R.id.option439 to "pack_500",
-        R.id.option1000 to "pack_1000",
-        R.id.option1500 to "pack_1500",
-        R.id.option2500 to "pack_2500"
+        R.id.option149 to "pack_200",
+        R.id.option290 to "pack_450",
+        R.id.option439 to "pack_1000",
+        R.id.option1000 to "pack_2000",
+        R.id.option1500 to "pack_3200",
+        R.id.option2500 to "pack_5000"
     )
     private val fallbackPriceByOptionId = mapOf(
         R.id.option149 to R.string.credit_price_150,
@@ -64,12 +74,28 @@ class CreditStoreActivity : AppCompatActivity() {
         R.id.option2500 to R.string.credit_price_2500
     )
     private val priceViewByPackId = mapOf(
-        "pack_150" to R.id.price150,
-        "pack_300" to R.id.price300,
-        "pack_500" to R.id.price500,
-        "pack_1000" to R.id.price1000,
-        "pack_1500" to R.id.price1500,
-        "pack_2500" to R.id.price2500
+        "pack_200" to R.id.price150,
+        "pack_450" to R.id.price300,
+        "pack_1000" to R.id.price500,
+        "pack_2000" to R.id.price1000,
+        "pack_3200" to R.id.price1500,
+        "pack_5000" to R.id.price2500
+    )
+    private val minuteViewByPackId = mapOf(
+        "pack_200" to R.id.minutes150,
+        "pack_450" to R.id.minutes300,
+        "pack_1000" to R.id.minutes500,
+        "pack_2000" to R.id.minutes1000,
+        "pack_3200" to R.id.minutes1500,
+        "pack_5000" to R.id.minutes2500
+    )
+    private val saveViewByPackId = mapOf(
+        "pack_200" to R.id.save150,
+        "pack_450" to R.id.save300,
+        "pack_1000" to R.id.save500,
+        "pack_2000" to R.id.save1000,
+        "pack_3200" to R.id.save1500,
+        "pack_5000" to R.id.save2500
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,10 +111,36 @@ class CreditStoreActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.backButton).setOnClickListener { finish() }
         buyButton = findViewById(R.id.confirmPurchaseButton)
+        monthlyCards = listOf(
+            MonthlyCardViews(
+                card = findViewById(R.id.monthlyCard1),
+                badge = findViewById(R.id.monthlyBadge1),
+                title = findViewById(R.id.monthlyTitle1),
+                subtitle = findViewById(R.id.monthlySubtitle1),
+                price = findViewById(R.id.monthlyPrice1),
+                button = findViewById(R.id.monthlyButton1)
+            ),
+            MonthlyCardViews(
+                card = findViewById(R.id.monthlyCard2),
+                badge = findViewById(R.id.monthlyBadge2),
+                title = findViewById(R.id.monthlyTitle2),
+                subtitle = findViewById(R.id.monthlySubtitle2),
+                price = findViewById(R.id.monthlyPrice2),
+                button = findViewById(R.id.monthlyButton2)
+            ),
+            MonthlyCardViews(
+                card = findViewById(R.id.monthlyCard3),
+                badge = findViewById(R.id.monthlyBadge3),
+                title = findViewById(R.id.monthlyTitle3),
+                subtitle = findViewById(R.id.monthlySubtitle3),
+                price = findViewById(R.id.monthlyPrice3),
+                button = findViewById(R.id.monthlyButton3)
+            )
+        )
         currencyFlag = findViewById(R.id.currencyFlag)
         currencyCode = findViewById(R.id.currencyCode)
         currencyName = findViewById(R.id.currencyName)
-        totalCreditsValue = findViewById(R.id.totalCreditsValue)
+        popular450Badge = findViewById(R.id.popular300)
         scrollView = findViewById(R.id.creditStoreScroll)
         loadingContainer = findViewById(R.id.loadingContainer)
 
@@ -106,29 +158,25 @@ class CreditStoreActivity : AppCompatActivity() {
         options.forEach { view ->
             view.setOnClickListener { selectOption(view) }
         }
-        selectOption(findViewById(R.id.option1000))
+        selectOption(findViewById(R.id.option290))
 
         val hasCachedPricing = applyCachedPricing(selectedCurrency)
-        val hasCachedBalance = applyCachedBalance()
-        blockingInitialLoad = !hasCachedPricing && !hasCachedBalance
+        blockingInitialLoad = !hasCachedPricing
         if (blockingInitialLoad) {
-            waitingInitialLoads = 2
+            waitingInitialLoads = 1
             showLoadingOnly(true)
         }
 
         refreshStoreData()
 
         buyButton.setOnClickListener { openCheckout() }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (!hasResumedOnce) {
-            hasResumedOnce = true
-            return
-        }
-        if (!blockingInitialLoad) {
-            loadBalance()
+        monthlyCards.forEach { row ->
+            row.button.setOnClickListener {
+                Toast.makeText(this, R.string.monthly_subscription_coming_soon, Toast.LENGTH_SHORT).show()
+            }
+            row.card.setOnClickListener {
+                Toast.makeText(this, R.string.monthly_subscription_coming_soon, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -163,7 +211,6 @@ class CreditStoreActivity : AppCompatActivity() {
 
     private fun refreshStoreData() {
         loadPricing()
-        loadBalance()
     }
 
     private fun selectOption(view: View) {
@@ -183,6 +230,14 @@ class CreditStoreActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateCurrencyRow() {
+        val selected = currencyOptions.firstOrNull { it.code == selectedCurrency } ?: currencyOptions.first()
+        selectedCurrency = selected.code
+        currencyFlag.text = selected.flagEmoji
+        currencyCode.text = selected.code
+        currencyName.text = selected.name
+    }
+
     private fun showCurrencyPicker() {
         val adapter = CurrencyAdapter(currencyOptions)
         AlertDialog.Builder(this)
@@ -199,13 +254,6 @@ class CreditStoreActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun updateCurrencyRow() {
-        val selected = currencyOptions.firstOrNull { it.code == selectedCurrency } ?: currencyOptions.first()
-        currencyFlag.text = selected.flagEmoji
-        currencyCode.text = selected.code
-        currencyName.text = selected.name
-    }
-
     private fun loadPricing() {
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
         if (baseUrl.isBlank()) {
@@ -216,15 +264,13 @@ class CreditStoreActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val fetched = CreditStoreDataCache.fetchAndCachePricing(this@CreditStoreActivity, baseUrl, selectedCurrency)
+                val fetched = CreditStoreDataCache.fetchAndCachePricingCatalog(
+                    this@CreditStoreActivity,
+                    baseUrl,
+                    selectedCurrency
+                )
                 if (fetched != null) {
-                    packPrices.clear()
-                    packPrices.putAll(fetched)
-                    for ((packId, viewId) in priceViewByPackId) {
-                        val value = fetched[packId] ?: continue
-                        findViewById<TextView>(viewId).text = value
-                    }
-                    updateBuyButton()
+                    applyCatalog(fetched)
                 }
             } catch (_: Exception) {
                 Toast.makeText(this@CreditStoreActivity, R.string.currency_load_failed, Toast.LENGTH_SHORT).show()
@@ -234,51 +280,67 @@ class CreditStoreActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadBalance() {
-        val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
-        if (baseUrl.isBlank()) {
-            onInitialLoadFinished()
-            return
-        }
-
-        lifecycleScope.launch {
-            try {
-                val fetched = CreditStoreDataCache.fetchAndCacheBalance(this@CreditStoreActivity, baseUrl)
-                if (fetched == null) {
-                    val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
-                    if (token.isNullOrBlank()) {
-                        AuthStore.clearSession(this@CreditStoreActivity)
-                        startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
-                        finish()
-                        return@launch
-                    }
-                    return@launch
-                }
-                totalCreditsValue.text = fetched.toString()
-            } catch (_: Exception) {
-                // Keep existing value on failure.
-            } finally {
-                onInitialLoadFinished()
-            }
-        }
-    }
-
-    private fun applyCachedBalance(): Boolean {
-        val cached = CreditStoreDataCache.getCachedBalanceMinutes(this) ?: return false
-        totalCreditsValue.text = cached.toString()
+    private fun applyCachedPricing(currency: String): Boolean {
+        val cached = CreditStoreDataCache.getCachedPricingCatalog(this, currency) ?: return false
+        applyCatalog(cached)
         return true
     }
 
-    private fun applyCachedPricing(currency: String): Boolean {
-        val cached = CreditStoreDataCache.getCachedPrices(this, currency) ?: return false
+    private fun applyCatalog(catalog: CreditStoreDataCache.PricingCatalog) {
         packPrices.clear()
-        packPrices.putAll(cached)
+        packSavings.clear()
+
+        for ((packId, pack) in catalog.packsById) {
+            packPrices[packId] = pack.priceLabel
+            packSavings[packId] = formatSavings(pack.savingsPercent)
+        }
+
         for ((packId, viewId) in priceViewByPackId) {
-            val value = cached[packId] ?: continue
+            val value = packPrices[packId] ?: continue
             findViewById<TextView>(viewId).text = value
         }
+        for ((packId, viewId) in minuteViewByPackId) {
+            val minutes = catalog.packsById[packId]?.minutesIncluded ?: continue
+            findViewById<TextView>(viewId).text = minutes.toString()
+        }
+        for ((packId, viewId) in saveViewByPackId) {
+            val label = packSavings[packId].orEmpty()
+            val saveView = findViewById<TextView>(viewId)
+            if (label.isBlank()) {
+                saveView.visibility = View.GONE
+            } else {
+                saveView.visibility = View.VISIBLE
+                saveView.text = label
+            }
+        }
+        popular450Badge.visibility = View.VISIBLE
+
+        val subscriptions = catalog.subscriptionOffers
+        monthlyCards.forEachIndexed { index, row ->
+            val offer = subscriptions.getOrNull(index)
+            if (offer == null) {
+                row.card.visibility = View.GONE
+                return@forEachIndexed
+            }
+
+            row.card.visibility = View.VISIBLE
+            row.title.text = if (offer.title.isBlank()) getString(R.string.monthly_subscription_title) else offer.title
+            row.subtitle.text = offer.subtitle ?: getString(R.string.monthly_subscription_subtitle_default)
+            row.price.text = getString(R.string.monthly_subscription_price_format, offer.priceLabel)
+            val badge = offer.badge
+            if (badge.isNullOrBlank()) {
+                row.badge.visibility = View.GONE
+            } else {
+                row.badge.visibility = View.VISIBLE
+                row.badge.text = badge
+            }
+        }
         updateBuyButton()
-        return true
+    }
+
+    private fun formatSavings(savingsPercent: Int?): String {
+        if (savingsPercent == null || savingsPercent <= 0) return ""
+        return getString(R.string.credit_save_percent_only_format, savingsPercent)
     }
 
     private fun onInitialLoadFinished() {
@@ -311,4 +373,5 @@ class CreditStoreActivity : AppCompatActivity() {
             return view
         }
     }
+
 }
