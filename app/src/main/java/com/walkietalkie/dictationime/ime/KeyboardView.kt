@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.appcompat.widget.AppCompatButton
 import androidx.appcompat.widget.AppCompatImageButton
 import androidx.appcompat.widget.AppCompatImageView
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import com.walkietalkie.dictationime.R
 import com.walkietalkie.dictationime.audio.AudioFeatures
@@ -36,13 +37,15 @@ class KeyboardView @JvmOverloads constructor(
 
     private val typeface = ResourcesCompat.getFont(context, R.font.space_grotesk) ?: Typeface.DEFAULT
 
-    private val colorSurface = Color.parseColor("#0A0F16")
-    private val colorPanel = Color.parseColor("#111824")
-    private val colorPanelAlt = Color.parseColor("#1B2636")
-    private val colorKeyBorder = Color.parseColor("#304158")
-    private val colorTextPrimary = Color.parseColor("#E8EEF7")
-    private val colorTextMuted = Color.parseColor("#92A0B7")
-    private val colorAccent = Color.parseColor("#24C4B3")
+    private val colorSurface = getColor(R.color.home_surface)
+    private val colorPanel = getColor(R.color.home_surface_card)
+    private val colorPanelAlt = getColor(R.color.home_surface_depth)
+    private val colorKeyBorder = getColor(R.color.home_border_subtle)
+    private val colorTextPrimary = getColor(R.color.home_ink)
+    private val colorTextMuted = getColor(R.color.home_ink_muted)
+    private val colorPrimaryAction = getColor(R.color.home_ring_indicator)
+    private val colorPrimaryActionText = getColor(R.color.home_surface)
+    private val colorMicIdleStroke = getColor(R.color.home_border_subtle)
     private val colorRecording = Color.parseColor("#4B8DFF")
     private val colorError = Color.parseColor("#F0555D")
     private val colorCancelFill = Color.parseColor("#A1303A")
@@ -86,8 +89,8 @@ class KeyboardView @JvmOverloads constructor(
         textSize = 12f
         letterSpacing = 0.08f
         isAllCaps = true
-        setTextColor(Color.parseColor("#041314"))
-        background = roundedRectDrawable(radiusDp = 16, fillColor = colorAccent, strokeColor = colorAccent)
+        setTextColor(colorPrimaryActionText)
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorPrimaryAction, strokeColor = colorPrimaryAction)
         setPadding(dp(18), dp(10), dp(18), dp(10))
         setOnClickListener {
             performTapHaptic()
@@ -115,8 +118,8 @@ class KeyboardView @JvmOverloads constructor(
         textSize = 12f
         letterSpacing = 0.08f
         isAllCaps = true
-        setTextColor(Color.parseColor("#041314"))
-        background = roundedRectDrawable(radiusDp = 16, fillColor = colorAccent, strokeColor = colorAccent)
+        setTextColor(colorPrimaryActionText)
+        background = roundedRectDrawable(radiusDp = 16, fillColor = colorPrimaryAction, strokeColor = colorPrimaryAction)
         setPadding(dp(18), dp(10), dp(18), dp(10))
         setOnClickListener {
             performTapHaptic()
@@ -150,7 +153,7 @@ class KeyboardView @JvmOverloads constructor(
         background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(Color.TRANSPARENT)
-            setStroke(dp(2), Color.parseColor("#3A4E67"))
+            setStroke(dp(2), colorMicIdleStroke)
         }
     }
 
@@ -164,7 +167,7 @@ class KeyboardView @JvmOverloads constructor(
         background = GradientDrawable().apply {
             shape = GradientDrawable.OVAL
             setColor(colorPanelAlt)
-            setStroke(dp(2), Color.parseColor("#3C4F67"))
+            setStroke(dp(2), colorMicIdleStroke)
         }
         isClickable = true
         isFocusable = true
@@ -299,15 +302,15 @@ class KeyboardView @JvmOverloads constructor(
                 setBackspaceMode(BackspaceMode.Erase)
                 setMicAppearance(
                     fillColor = colorPanelAlt,
-                    borderColor = Color.parseColor("#3C4F67"),
-                    ringColor = Color.parseColor("#39506B"),
+                    borderColor = colorMicIdleStroke,
+                    ringColor = colorMicIdleStroke,
                     iconRes = R.drawable.ic_mic_te,
                     iconTint = colorTextPrimary,
                     enableMic = true
                 )
                 statusText.text = context.getString(R.string.ime_tap_to_start)
                 statusText.setTextColor(colorTextMuted)
-                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+                setWaveformState(visible = false, active = false, color = colorTranscribing, mode = WaveformMode.Idle)
             }
 
             DictationState.Recording -> {
@@ -344,15 +347,15 @@ class KeyboardView @JvmOverloads constructor(
                 setBackspaceMode(BackspaceMode.Erase)
                 setMicAppearance(
                     fillColor = colorPanelAlt,
-                    borderColor = Color.parseColor("#3C4F67"),
-                    ringColor = Color.parseColor("#39506B"),
+                    borderColor = colorMicIdleStroke,
+                    ringColor = colorMicIdleStroke,
                     iconRes = R.drawable.ic_mic_te,
                     iconTint = colorTextPrimary,
                     enableMic = true
                 )
                 statusText.text = errorToText(state.reason)
                 statusText.setTextColor(colorError)
-                setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+                setWaveformState(visible = false, active = false, color = colorTranscribing, mode = WaveformMode.Idle)
             }
         }
     }
@@ -378,7 +381,7 @@ class KeyboardView @JvmOverloads constructor(
             loggedOutContainer.visibility = GONE
             outOfCreditsContainer.visibility = VISIBLE
             statusText.visibility = GONE
-            setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+            setWaveformState(visible = false, active = false, color = colorTranscribing, mode = WaveformMode.Idle)
             controlsRow.visibility = GONE
         } else {
             outOfCreditsContainer.visibility = GONE
@@ -394,7 +397,7 @@ class KeyboardView @JvmOverloads constructor(
             outOfCreditsContainer.visibility = GONE
             statusText.visibility = GONE
             controlsRow.visibility = GONE
-            setWaveformState(visible = false, active = false, color = colorAccent, mode = WaveformMode.Idle)
+            setWaveformState(visible = false, active = false, color = colorTranscribing, mode = WaveformMode.Idle)
         } else {
             loggedOutContainer.visibility = GONE
             render(DictationState.Idle)
@@ -541,6 +544,8 @@ class KeyboardView @JvmOverloads constructor(
 
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
+
+    private fun getColor(colorRes: Int): Int = ContextCompat.getColor(context, colorRes)
 
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
