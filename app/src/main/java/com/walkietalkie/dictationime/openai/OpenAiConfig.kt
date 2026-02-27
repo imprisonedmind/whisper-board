@@ -12,7 +12,8 @@ object OpenAiConfig {
         if (!useOpenAiDirect) return ""
         val runtimeKey = context?.let { OpenAiKeyStore.getApiKey(it) }.orEmpty()
         if (runtimeKey.isNotBlank()) return runtimeKey
-        return BuildConfig.OPENAI_API_KEY
+        // Never ship a bundled key; OSS mode must rely on runtime-provided keys only.
+        return ""
     }
 
     val baseUrl: String

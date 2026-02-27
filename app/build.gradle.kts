@@ -9,39 +9,53 @@ android {
     namespace = "com.walkietalkie.dictationime"
     compileSdk = 35
 
+    val releaseSigningProperties = Properties().apply {
+        val file = rootProject.file("release-signing.properties")
+        if (file.exists()) {
+            file.inputStream().use { load(it) }
+        }
+    }
+
+    fun envOrGradle(key: String): String? =
+        System.getenv(key)
+            ?: (project.findProperty(key) as String?)
+            ?: releaseSigningProperties.getProperty(key)
+
+    val appMode = (envOrGradle("APP_MODE") ?: "dev").trim().lowercase()
+    val isOpenSourceMode = appMode == "dev" || appMode == "open_source" || appMode == "oss"
+    val appPropertiesFile = envOrGradle("APP_PROPERTIES_FILE") ?: if (isOpenSourceMode) "gradle.properties.dev" else ""
+    val modeProperties = Properties().apply {
+        if (appPropertiesFile.isNotBlank()) {
+            val modeFile = rootProject.file(appPropertiesFile)
+            if (modeFile.exists()) {
+                modeFile.inputStream().use { load(it) }
+            }
+        }
+    }
+    fun envOrProp(key: String): String? =
+        System.getenv(key)
+            ?: (project.findProperty(key) as String?)
+            ?: modeProperties.getProperty(key)
+
+    val openAiApiKey = ""
+    val openAiBaseUrl = envOrProp("OPENAI_BASE_URL") ?: "https://api.openai.com/v1"
+    val backendBaseUrl = envOrProp("BACKEND_BASE_URL") ?: ""
+    val enableBackendFeatures = (!isOpenSourceMode).toString()
+    val requireAuth = (!isOpenSourceMode).toString()
+    val isReleaseBuild = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+    val releaseStoreFile = envOrGradle("RELEASE_STORE_FILE")
+    val releaseStorePassword = envOrGradle("RELEASE_STORE_PASSWORD")
+    val releaseKeyAlias = envOrGradle("RELEASE_KEY_ALIAS")
+    val releaseKeyPassword = envOrGradle("RELEASE_KEY_PASSWORD")
+
     defaultConfig {
         applicationId = "com.walkietalkie.dictationime"
         minSdk = 29
         targetSdk = 35
-        versionCode = 1
+        versionCode = 2
         versionName = "0.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        fun envOrGradle(key: String): String? =
-            System.getenv(key)
-                ?: (project.findProperty(key) as String?)
-
-        val appMode = (envOrGradle("APP_MODE") ?: "dev").trim().lowercase()
-        val isOpenSourceMode = appMode == "dev" || appMode == "open_source" || appMode == "oss"
-        val appPropertiesFile = envOrGradle("APP_PROPERTIES_FILE") ?: if (isOpenSourceMode) "gradle.properties.dev" else ""
-        val modeProperties = Properties().apply {
-            if (appPropertiesFile.isNotBlank()) {
-                val modeFile = rootProject.file(appPropertiesFile)
-                if (modeFile.exists()) {
-                    modeFile.inputStream().use { load(it) }
-                }
-            }
-        }
-        fun envOrProp(key: String): String? =
-            System.getenv(key)
-                ?: (project.findProperty(key) as String?)
-                ?: modeProperties.getProperty(key)
-
-        val openAiApiKey = if (isOpenSourceMode) (envOrProp("OPENAI_API_KEY") ?: "") else ""
-        val openAiBaseUrl = envOrProp("OPENAI_BASE_URL") ?: "https://api.openai.com/v1"
-        val backendBaseUrl = envOrProp("BACKEND_BASE_URL") ?: ""
-        val enableBackendFeatures = (!isOpenSourceMode).toString()
-        val requireAuth = (!isOpenSourceMode).toString()
 
         buildConfigField("String", "OPENAI_API_KEY", "\"${openAiApiKey}\"")
         buildConfigField("String", "OPENAI_BASE_URL", "\"${openAiBaseUrl}\"")
@@ -51,9 +65,45 @@ android {
         buildConfigField("boolean", "REQUIRE_AUTH", requireAuth)
     }
 
+    signingConfigs {
+        create("release") {
+            if (
+                !releaseStoreFile.isNullOrBlank() &&
+                !releaseStorePassword.isNullOrBlank() &&
+                !releaseKeyAlias.isNullOrBlank() &&
+                !releaseKeyPassword.isNullOrBlank()
+            ) {
+                storeFile = file(releaseStoreFile)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (isReleaseBuild) {
+                require(appMode == "prod") {
+                    "Release builds require APP_MODE=prod. Current APP_MODE=$appMode"
+                }
+                require(!isOpenSourceMode) {
+                    "Release builds in OSS mode are blocked to prevent accidental secret leakage."
+                }
+                require(!backendBaseUrl.isNullOrBlank()) {
+                    "Release builds require BACKEND_BASE_URL."
+                }
+                require(
+                    !releaseStoreFile.isNullOrBlank() &&
+                    !releaseStorePassword.isNullOrBlank() &&
+                    !releaseKeyAlias.isNullOrBlank() &&
+                    !releaseKeyPassword.isNullOrBlank()
+                ) {
+                    "Release signing is not configured. Provide RELEASE_STORE_FILE, RELEASE_STORE_PASSWORD, RELEASE_KEY_ALIAS, RELEASE_KEY_PASSWORD."
+                }
+            }
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

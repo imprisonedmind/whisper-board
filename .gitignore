@@ -10,3 +10,9 @@ gradle.properties.prod
 **/captures/
 .DS_Store
 .codex_write_test
+
+# Release signing material
+keystore/
+*.jks
+*.keystore
+release-signing.properties

@@ -1,0 +1,5 @@
+# Copy to `walkie-talkie/release-signing.properties` (kept out of git) and fill values.
+RELEASE_STORE_FILE=/absolute/path/to/your-upload-key.jks
+RELEASE_STORE_PASSWORD=change_me
+RELEASE_KEY_ALIAS=upload
+RELEASE_KEY_PASSWORD=change_me
