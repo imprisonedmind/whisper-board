@@ -29,6 +29,16 @@ object TranscriptionModels {
             id = "gpt-4o-transcribe-diarize",
             label = "GPT-4o Transcribe Diarize",
             subtitle = "Tracks speakers in multi-person recordings"
+        ),
+        TranscriptionModelOption(
+            id = "whisper-large-v3",
+            label = "Groq Whisper Large v3",
+            subtitle = "High-accuracy Whisper on Groq infrastructure"
+        ),
+        TranscriptionModelOption(
+            id = "whisper-large-v3-turbo",
+            label = "Groq Whisper Large v3 Turbo",
+            subtitle = "Lower-latency Groq Whisper for fast dictation"
         )
     )
 
