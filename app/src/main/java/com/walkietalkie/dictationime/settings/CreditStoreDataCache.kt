@@ -22,6 +22,8 @@ object CreditStoreDataCache {
 
     data class SubscriptionOffer(
         val offerKey: String,
+        val checkoutProvider: String?,
+        val checkoutSku: String?,
         val title: String,
         val subtitle: String?,
         val priceLabel: String,
@@ -86,6 +88,8 @@ object CreditStoreDataCache {
                 listOf(
                     SubscriptionOffer(
                         offerKey = sub.optString("offerKey", ""),
+                        checkoutProvider = sub.optString("checkoutProvider").ifBlank { null },
+                        checkoutSku = sub.optString("checkoutSku").ifBlank { null },
                         title = sub.optString("title", ""),
                         subtitle = sub.optString("subtitle").ifBlank { null },
                         priceLabel = sub.optString("priceLabel", ""),
@@ -102,6 +106,8 @@ object CreditStoreDataCache {
                     list.add(
                         SubscriptionOffer(
                             offerKey = sub.optString("offerKey", ""),
+                            checkoutProvider = sub.optString("checkoutProvider").ifBlank { null },
+                            checkoutSku = sub.optString("checkoutSku").ifBlank { null },
                             title = sub.optString("title", ""),
                             subtitle = sub.optString("subtitle").ifBlank { null },
                             priceLabel = sub.optString("priceLabel", ""),
@@ -174,6 +180,8 @@ object CreditStoreDataCache {
                     } else if (kind == "subscription_unlimited_monthly" || kind == "subscription_monthly") {
                         val current = SubscriptionOffer(
                             offerKey = offer.optString("offerKey", ""),
+                            checkoutProvider = offer.optString("checkoutProvider").ifBlank { null },
+                            checkoutSku = offer.optString("checkoutSku").ifBlank { null },
                             title = offer.optString("title", "Unlimited Monthly"),
                             subtitle = offer.optString("subtitle").ifBlank { null },
                             priceLabel = priceLabel,
@@ -204,6 +212,8 @@ object CreditStoreDataCache {
                         for (sub in subscriptions) {
                             put(JSONObject().apply {
                                 put("offerKey", sub.offerKey)
+                                put("checkoutProvider", sub.checkoutProvider)
+                                put("checkoutSku", sub.checkoutSku)
                                 put("title", sub.title)
                                 put("subtitle", sub.subtitle)
                                 put("priceLabel", sub.priceLabel)
@@ -216,6 +226,8 @@ object CreditStoreDataCache {
                     if (subscriptionOffer != null) {
                         put("subscription", JSONObject().apply {
                             put("offerKey", subscriptionOffer.offerKey)
+                            put("checkoutProvider", subscriptionOffer.checkoutProvider)
+                            put("checkoutSku", subscriptionOffer.checkoutSku)
                             put("title", subscriptionOffer.title)
                             put("subtitle", subscriptionOffer.subtitle)
                             put("priceLabel", subscriptionOffer.priceLabel)

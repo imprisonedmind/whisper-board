@@ -19,8 +19,18 @@ import com.walkietalkie.dictationime.auth.AuthStore
 import com.walkietalkie.dictationime.auth.LoginEmailActivity
 import kotlinx.coroutines.launch
 import java.net.URLEncoder
+import java.util.Locale
 
 class CreditStoreActivity : AppCompatActivity() {
+    companion object {
+        private const val PREFS_NAME = "credit_store_prefs"
+        private const val PREF_CURRENCY_CODE = "currency_code"
+        private val EUR_COUNTRIES = setOf(
+            "AT", "BE", "CY", "DE", "EE", "ES", "FI", "FR", "GR", "HR", "IE", "IT",
+            "LT", "LU", "LV", "MT", "NL", "PT", "SI", "SK"
+        )
+    }
+
     private data class CurrencyOption(
         val code: String,
         val name: String,
@@ -48,6 +58,7 @@ class CreditStoreActivity : AppCompatActivity() {
     private var selectedCurrency = "USD"
     private var blockingInitialLoad = false
     private var waitingInitialLoads = 0
+    private var currentSubscriptionOffers: List<CreditStoreDataCache.SubscriptionOffer> = emptyList()
 
     private val currencyOptions = listOf(
         CurrencyOption("USD", "United States Dollar", "🇺🇸"),
@@ -144,6 +155,7 @@ class CreditStoreActivity : AppCompatActivity() {
         scrollView = findViewById(R.id.creditStoreScroll)
         loadingContainer = findViewById(R.id.loadingContainer)
 
+        selectedCurrency = resolveInitialCurrency()
         updateCurrencyRow()
         findViewById<View>(R.id.currencyRow).setOnClickListener { showCurrencyPicker() }
 
@@ -170,12 +182,12 @@ class CreditStoreActivity : AppCompatActivity() {
         refreshStoreData()
 
         buyButton.setOnClickListener { openCheckout() }
-        monthlyCards.forEach { row ->
+        monthlyCards.forEachIndexed { index, row ->
             row.button.setOnClickListener {
-                Toast.makeText(this, R.string.monthly_subscription_coming_soon, Toast.LENGTH_SHORT).show()
+                openSubscriptionCheckout(currentSubscriptionOffers.getOrNull(index))
             }
             row.card.setOnClickListener {
-                Toast.makeText(this, R.string.monthly_subscription_coming_soon, Toast.LENGTH_SHORT).show()
+                openSubscriptionCheckout(currentSubscriptionOffers.getOrNull(index))
             }
         }
     }
@@ -213,6 +225,34 @@ class CreditStoreActivity : AppCompatActivity() {
         loadPricing()
     }
 
+    private fun openSubscriptionCheckout(offer: CreditStoreDataCache.SubscriptionOffer?) {
+        val checkoutSku = offer?.checkoutSku
+        if (offer?.checkoutProvider != "payfast" || checkoutSku.isNullOrBlank()) {
+            Toast.makeText(this, R.string.monthly_subscription_coming_soon, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
+        if (baseUrl.isBlank()) {
+            Toast.makeText(this, "Backend URL not configured", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch {
+            val token = AuthSessionManager.getValidAccessToken(this@CreditStoreActivity)
+            if (token.isNullOrBlank()) {
+                AuthStore.clearSession(this@CreditStoreActivity)
+                startActivity(Intent(this@CreditStoreActivity, LoginEmailActivity::class.java))
+                finish()
+                return@launch
+            }
+
+            val tokenParam = "&access_token=${URLEncoder.encode(token, "UTF-8")}"
+            val url = "$baseUrl/payfast/subscription-checkout?plan=$checkoutSku&currency=$selectedCurrency$tokenParam"
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        }
+    }
+
     private fun selectOption(view: View) {
         selectedOption?.setBackgroundResource(R.drawable.bg_credit_option_brand)
         view.setBackgroundResource(R.drawable.bg_credit_option_brand_selected)
@@ -246,12 +286,40 @@ class CreditStoreActivity : AppCompatActivity() {
                 val selected = currencyOptions[index]
                 if (selected.code != selectedCurrency) {
                     selectedCurrency = selected.code
+                    saveSelectedCurrency(selectedCurrency)
                     updateCurrencyRow()
                     applyCachedPricing(selectedCurrency)
                     loadPricing()
                 }
             }
             .show()
+    }
+
+    private fun resolveInitialCurrency(): String {
+        val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+        val saved = prefs.getString(PREF_CURRENCY_CODE, null)?.uppercase(Locale.US)
+        if (saved != null && currencyOptions.any { it.code == saved }) {
+            return saved
+        }
+
+        val country = Locale.getDefault().country.uppercase(Locale.US)
+        val detected = when {
+            country == "US" -> "USD"
+            country == "ZA" -> "ZAR"
+            country == "GB" -> "GBP"
+            country in EUR_COUNTRIES -> "EUR"
+            else -> "USD"
+        }
+
+        saveSelectedCurrency(detected)
+        return detected
+    }
+
+    private fun saveSelectedCurrency(currencyCode: String) {
+        getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
+            .edit()
+            .putString(PREF_CURRENCY_CODE, currencyCode.uppercase(Locale.US))
+            .apply()
     }
 
     private fun loadPricing() {
@@ -316,6 +384,7 @@ class CreditStoreActivity : AppCompatActivity() {
         popular450Badge.visibility = View.VISIBLE
 
         val subscriptions = catalog.subscriptionOffers
+        currentSubscriptionOffers = subscriptions
         monthlyCards.forEachIndexed { index, row ->
             val offer = subscriptions.getOrNull(index)
             if (offer == null) {
