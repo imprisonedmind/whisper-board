@@ -21,4 +21,5 @@
     <dimen name="te_label_gap">6dp</dimen>
     <dimen name="te_column_gap">14dp</dimen>
     <dimen name="te_row_gap">10dp</dimen>
+    <dimen name="onboarding_model_divider_height">1dp</dimen>
 </resources>

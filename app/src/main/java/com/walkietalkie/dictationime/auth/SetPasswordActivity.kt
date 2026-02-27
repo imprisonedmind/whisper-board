@@ -2,7 +2,6 @@ package com.walkietalkie.dictationime.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Patterns
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -23,14 +22,14 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class LoginEmailActivity : AppCompatActivity() {
+class SetPasswordActivity : AppCompatActivity() {
     private val client = OkHttpClient()
-    private lateinit var emailInput: EditText
     private lateinit var passwordInput: EditText
-    private lateinit var loginButton: Button
-    private lateinit var switchToCreateButton: TextView
+    private lateinit var confirmPasswordInput: EditText
+    private lateinit var setPasswordButton: Button
     private lateinit var helperText: TextView
     private lateinit var progress: View
+    private lateinit var verificationTicket: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,35 +39,35 @@ class LoginEmailActivity : AppCompatActivity() {
             return
         }
 
-        setContentView(R.layout.activity_login_email)
-
-        emailInput = findViewById(R.id.emailInput)
-        passwordInput = findViewById(R.id.passwordInput)
-        loginButton = findViewById(R.id.loginButton)
-        switchToCreateButton = findViewById(R.id.goToCreateAccountButton)
-        helperText = findViewById(R.id.loginEmailHelper)
-        progress = findViewById(R.id.loginEmailProgress)
-
-        loginButton.setOnClickListener {
-            loginWithPassword()
+        verificationTicket = intent.getStringExtra(EXTRA_VERIFICATION_TICKET).orEmpty()
+        if (verificationTicket.isBlank()) {
+            finish()
+            return
         }
 
-        switchToCreateButton.setOnClickListener {
-            startActivity(Intent(this, CreateAccountActivity::class.java))
-            finish()
+        setContentView(R.layout.activity_set_password)
+
+        passwordInput = findViewById(R.id.setPasswordInput)
+        confirmPasswordInput = findViewById(R.id.setPasswordConfirmInput)
+        setPasswordButton = findViewById(R.id.setPasswordButton)
+        helperText = findViewById(R.id.setPasswordHelper)
+        progress = findViewById(R.id.setPasswordProgress)
+
+        setPasswordButton.setOnClickListener {
+            submitPassword()
         }
     }
 
-    private fun loginWithPassword() {
-        val email = emailInput.text.toString().trim().lowercase()
+    private fun submitPassword() {
         val password = passwordInput.text.toString().trim()
+        val confirm = confirmPasswordInput.text.toString().trim()
 
-        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            Toast.makeText(this, R.string.auth_invalid_email, Toast.LENGTH_SHORT).show()
-            return
-        }
         if (password.length < 8) {
             Toast.makeText(this, R.string.auth_invalid_password, Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (password != confirm) {
+            Toast.makeText(this, R.string.auth_password_mismatch, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -79,18 +78,18 @@ class LoginEmailActivity : AppCompatActivity() {
         }
 
         setLoading(true)
-        helperText.text = getString(R.string.auth_signing_in)
+        helperText.text = getString(R.string.auth_setting_password)
 
         lifecycleScope.launch {
             try {
                 val payload = JSONObject()
-                    .put("email", email)
+                    .put("verificationTicket", verificationTicket)
                     .put("password", password)
-                    .put("deviceId", AuthStore.getOrCreateDeviceId(this@LoginEmailActivity))
+                    .put("deviceId", AuthStore.getOrCreateDeviceId(this@SetPasswordActivity))
                     .toString()
 
                 val request = Request.Builder()
-                    .url("$baseUrl/auth/login")
+                    .url("$baseUrl/auth/signup/set-password")
                     .post(payload.toRequestBody("application/json".toMediaType()))
                     .build()
                 val endpoint = request.url.toString()
@@ -105,39 +104,29 @@ class LoginEmailActivity : AppCompatActivity() {
                     val backendMessage = AuthApiLogger.parseBackendMessage(
                         response.code,
                         body,
-                        getString(R.string.auth_login_failed)
+                        getString(R.string.auth_set_password_failed)
                     )
                     helperText.text = backendMessage
-                    Toast.makeText(this@LoginEmailActivity, backendMessage, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@SetPasswordActivity, backendMessage, Toast.LENGTH_LONG).show()
                     return@launch
                 }
 
-                val json = JSONObject(body.ifBlank { "{}" })
-                if (json.optBoolean("requiresVerification", false)) {
-                    startActivity(
-                        Intent(this@LoginEmailActivity, LoginOtpActivity::class.java)
-                            .putExtra(LoginOtpActivity.EXTRA_EMAIL, email)
-                            .putExtra(LoginOtpActivity.EXTRA_FLOW, LoginOtpActivity.FLOW_LOGIN)
-                    )
-                    finish()
-                    return@launch
-                }
-
+                val json = JSONObject(body)
                 val accessToken = json.getString("accessToken")
                 val refreshToken = json.optString("refreshToken", "").ifBlank { null }
                 val expiresAt = json.getLong("expiresAt")
-                val verifiedEmail = json.optString("email", email).ifBlank { email }
-                AuthStore.saveSession(this@LoginEmailActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
+                val verifiedEmail = json.optString("email", "").ifBlank { "" }
+                AuthStore.saveSession(this@SetPasswordActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
 
-                val intent = Intent(this@LoginEmailActivity, AuthGateActivity::class.java)
+                val intent = Intent(this@SetPasswordActivity, AuthGateActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
             } catch (e: Exception) {
-                AuthApiLogger.logException("$baseUrl/auth/login", e)
-                helperText.text = getString(R.string.auth_login_helper)
+                AuthApiLogger.logException("$baseUrl/auth/signup/set-password", e)
+                helperText.text = getString(R.string.auth_set_password_helper)
                 Toast.makeText(
-                    this@LoginEmailActivity,
-                    getString(R.string.auth_login_failed),
+                    this@SetPasswordActivity,
+                    getString(R.string.auth_set_password_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             } finally {
@@ -147,8 +136,11 @@ class LoginEmailActivity : AppCompatActivity() {
     }
 
     private fun setLoading(loading: Boolean) {
-        loginButton.isEnabled = !loading
-        switchToCreateButton.isEnabled = !loading
+        setPasswordButton.isEnabled = !loading
         progress.visibility = if (loading) View.VISIBLE else View.GONE
+    }
+
+    companion object {
+        const val EXTRA_VERIFICATION_TICKET = "extra_verification_ticket"
     }
 }

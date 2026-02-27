@@ -21,28 +21,32 @@ class AuthGateActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         lifecycleScope.launch {
-            val target = if (!AppModeConfig.isAuthRequired) {
-                MainActivity::class.java
+            val targetIntent = if (!AppModeConfig.isAuthRequired) {
+                Intent(this@AuthGateActivity, MainActivity::class.java)
             } else if (AuthStore.isSignedIn(this@AuthGateActivity)) {
                 val token = AuthSessionManager.getValidAccessToken(this@AuthGateActivity)
                 if (token.isNullOrBlank()) {
                     AuthStore.clearSession(this@AuthGateActivity)
-                    LoginEmailActivity::class.java
+                    Intent(this@AuthGateActivity, AuthHomeActivity::class.java)
                 } else {
                     resolveSignedInTarget(token)
                 }
             } else {
-                LoginEmailActivity::class.java
+                Intent(this@AuthGateActivity, AuthHomeActivity::class.java)
             }
 
-            startActivity(Intent(this@AuthGateActivity, target))
+            startActivity(targetIntent)
             finish()
         }
     }
 
-    private suspend fun resolveSignedInTarget(token: String): Class<*> {
+    private suspend fun resolveSignedInTarget(token: String): Intent {
+        OnboardingRequirements.missingStep(this@AuthGateActivity)?.let { missingStep ->
+            return onboardingIntent(missingStep)
+        }
+
         val baseUrl = BuildConfig.BACKEND_BASE_URL.trimEnd('/')
-        if (baseUrl.isBlank()) return MainActivity::class.java
+        if (baseUrl.isBlank()) return Intent(this@AuthGateActivity, MainActivity::class.java)
 
         return try {
             val request = Request.Builder()
@@ -58,9 +62,21 @@ class AuthGateActivity : AppCompatActivity() {
                 }
             }
             val json = JSONObject(body)
-            if (json.optBoolean("completed", false)) MainActivity::class.java else OnboardingActivity::class.java
+            if (json.optBoolean("completed", false)) {
+                Intent(this@AuthGateActivity, MainActivity::class.java)
+            } else {
+                onboardingIntent()
+            }
         } catch (_: Exception) {
-            MainActivity::class.java
+            Intent(this@AuthGateActivity, MainActivity::class.java)
+        }
+    }
+
+    private fun onboardingIntent(startStep: String? = null): Intent {
+        return Intent(this@AuthGateActivity, OnboardingActivity::class.java).apply {
+            if (!startStep.isNullOrBlank()) {
+                putExtra(OnboardingActivity.EXTRA_START_STEP, startStep)
+            }
         }
     }
 }

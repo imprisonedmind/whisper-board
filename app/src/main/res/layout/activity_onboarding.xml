@@ -70,6 +70,34 @@
                 android:textSize="14sp" />
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/onboardingModelCard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/onboardingModelHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="2dp"
+                android:paddingEnd="2dp"
+                android:text="@string/onboarding_model_hint"
+                android:textColor="@color/ink_muted"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:id="@+id/onboardingModelListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+
         <Button
             android:id="@+id/onboardingPrimaryButton"
             style="@style/Widget.DictationIme.PrimaryButton"

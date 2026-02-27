@@ -2,20 +2,21 @@ package com.walkietalkie.dictationime.auth
 
 import android.Manifest
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.walkietalkie.dictationime.BuildConfig
 import com.walkietalkie.dictationime.R
+import com.walkietalkie.dictationime.model.TranscriptionModels
+import com.walkietalkie.dictationime.settings.TranscriptionModelStore
 import com.walkietalkie.dictationime.settings.MainActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,7 +29,7 @@ import org.json.JSONObject
 import java.util.Locale
 
 class OnboardingActivity : AppCompatActivity() {
-    private enum class Step { COUNTRY, MICROPHONE, KEYBOARD }
+    private enum class Step { COUNTRY, MODEL, MICROPHONE, KEYBOARD }
 
     private data class CountryOption(
         val code: String,
@@ -53,12 +54,15 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var body: TextView
     private lateinit var countryRow: View
     private lateinit var countryValue: TextView
+    private lateinit var modelCard: View
+    private lateinit var modelListContainer: LinearLayout
     private lateinit var primaryButton: Button
     private lateinit var secondaryButton: Button
     private lateinit var progress: View
 
     private var step = Step.COUNTRY
     private var selectedCountryCode: String? = null
+    private var selectedModelId: String = ""
 
     private val requestMicPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -80,14 +84,28 @@ class OnboardingActivity : AppCompatActivity() {
         body = findViewById(R.id.onboardingBody)
         countryRow = findViewById(R.id.countryPickerRow)
         countryValue = findViewById(R.id.countryPickerValue)
+        modelCard = findViewById(R.id.onboardingModelCard)
+        modelListContainer = findViewById(R.id.onboardingModelListContainer)
         primaryButton = findViewById(R.id.onboardingPrimaryButton)
         secondaryButton = findViewById(R.id.onboardingSecondaryButton)
         progress = findViewById(R.id.onboardingProgress)
 
         selectedCountryCode = inferDefaultCountry()
+        selectedModelId = TranscriptionModelStore.getCached(this)
+        step = parseStepExtra(intent.getStringExtra(EXTRA_START_STEP))
         countryRow.setOnClickListener { showCountryPicker() }
         primaryButton.setOnClickListener { onPrimaryTapped() }
         secondaryButton.setOnClickListener { onSecondaryTapped() }
+        lifecycleScope.launch {
+            runCatching {
+                TranscriptionModelStore.fetchRemote(this@OnboardingActivity)
+            }.onSuccess { modelId ->
+                selectedModelId = modelId
+                if (step == Step.MODEL) {
+                    renderModelOptions()
+                }
+            }
+        }
 
         renderStep()
     }
@@ -102,20 +120,32 @@ class OnboardingActivity : AppCompatActivity() {
     private fun renderStep() {
         when (step) {
             Step.COUNTRY -> {
-                stepCount.text = getString(R.string.onboarding_step_count, 1, 3)
+                stepCount.text = getString(R.string.onboarding_step_count, 1, 4)
                 title.text = getString(R.string.onboarding_country_title)
                 body.text = getString(R.string.onboarding_country_body)
                 countryRow.visibility = View.VISIBLE
+                modelCard.visibility = View.GONE
                 countryValue.text = selectedCountryCode ?: getString(R.string.onboarding_country_select)
                 primaryButton.text = getString(R.string.onboarding_continue)
                 secondaryButton.text = getString(R.string.onboarding_country_skip)
             }
+            Step.MODEL -> {
+                stepCount.text = getString(R.string.onboarding_step_count, 2, 4)
+                title.text = getString(R.string.onboarding_model_title)
+                body.text = getString(R.string.onboarding_model_body)
+                countryRow.visibility = View.GONE
+                modelCard.visibility = View.VISIBLE
+                renderModelOptions()
+                primaryButton.text = getString(R.string.onboarding_continue)
+                secondaryButton.text = getString(R.string.onboarding_model_keep_current)
+            }
             Step.MICROPHONE -> {
-                val micGranted = isMicrophoneGranted()
-                stepCount.text = getString(R.string.onboarding_step_count, 2, 3)
+                val micGranted = OnboardingRequirements.isMicrophoneGranted(this)
+                stepCount.text = getString(R.string.onboarding_step_count, 3, 4)
                 title.text = getString(R.string.onboarding_mic_title)
                 body.text = getString(R.string.onboarding_mic_body)
                 countryRow.visibility = View.GONE
+                modelCard.visibility = View.GONE
                 primaryButton.text = if (micGranted) {
                     getString(R.string.onboarding_continue)
                 } else {
@@ -124,11 +154,12 @@ class OnboardingActivity : AppCompatActivity() {
                 secondaryButton.text = getString(R.string.open_app_settings)
             }
             Step.KEYBOARD -> {
-                val enabled = isKeyboardEnabled()
-                stepCount.text = getString(R.string.onboarding_step_count, 3, 3)
+                val enabled = OnboardingRequirements.isKeyboardEnabled(this)
+                stepCount.text = getString(R.string.onboarding_step_count, 4, 4)
                 title.text = getString(R.string.onboarding_keyboard_title)
                 body.text = getString(R.string.onboarding_keyboard_body)
                 countryRow.visibility = View.GONE
+                modelCard.visibility = View.GONE
                 primaryButton.text = if (enabled) {
                     getString(R.string.onboarding_finish)
                 } else {
@@ -142,8 +173,12 @@ class OnboardingActivity : AppCompatActivity() {
     private fun onPrimaryTapped() {
         when (step) {
             Step.COUNTRY -> submitCountryAndContinue()
+            Step.MODEL -> {
+                step = Step.MICROPHONE
+                renderStep()
+            }
             Step.MICROPHONE -> {
-                if (isMicrophoneGranted()) {
+                if (OnboardingRequirements.isMicrophoneGranted(this)) {
                     step = Step.KEYBOARD
                     renderStep()
                 } else {
@@ -151,7 +186,7 @@ class OnboardingActivity : AppCompatActivity() {
                 }
             }
             Step.KEYBOARD -> {
-                if (isKeyboardEnabled()) {
+                if (OnboardingRequirements.isKeyboardEnabled(this)) {
                     completeOnboarding()
                 } else {
                     startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
@@ -163,6 +198,10 @@ class OnboardingActivity : AppCompatActivity() {
     private fun onSecondaryTapped() {
         when (step) {
             Step.COUNTRY -> skipCountryAndContinue()
+            Step.MODEL -> {
+                step = Step.MICROPHONE
+                renderStep()
+            }
             Step.MICROPHONE -> {
                 startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = android.net.Uri.parse("package:$packageName")
@@ -194,7 +233,7 @@ class OnboardingActivity : AppCompatActivity() {
             val ok = updateOnboardingStatus(countryCode = code, countrySkipped = false, completed = null)
             setLoading(false)
             if (ok) {
-                step = Step.MICROPHONE
+                step = Step.MODEL
                 renderStep()
             }
         }
@@ -206,20 +245,63 @@ class OnboardingActivity : AppCompatActivity() {
             val ok = updateOnboardingStatus(countryCode = null, countrySkipped = true, completed = null)
             setLoading(false)
             if (ok) {
-                step = Step.MICROPHONE
+                step = Step.MODEL
                 renderStep()
             }
         }
     }
 
+    private fun renderModelOptions() {
+        modelListContainer.removeAllViews()
+        val inflater = layoutInflater
+        TranscriptionModels.options.forEachIndexed { index, option ->
+            val row = inflater.inflate(R.layout.item_model_option, modelListContainer, false)
+            row.findViewById<TextView>(R.id.modelOptionTitle).text = option.label
+            row.findViewById<TextView>(R.id.modelOptionSubtitle).text = option.subtitle
+            val selected = option.id == selectedModelId
+            row.findViewById<TextView>(R.id.modelOptionStatus).text = getString(
+                if (selected) R.string.model_option_selected else R.string.model_option_available
+            )
+            row.setOnClickListener {
+                if (selectedModelId == option.id) return@setOnClickListener
+                val previous = selectedModelId
+                selectedModelId = option.id
+                renderModelOptions()
+                lifecycleScope.launch {
+                    runCatching {
+                        TranscriptionModelStore.setSelectedModel(this@OnboardingActivity, option.id)
+                    }.onFailure {
+                        selectedModelId = previous
+                        renderModelOptions()
+                        Toast.makeText(
+                            this@OnboardingActivity,
+                            R.string.model_selection_save_failed,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+            modelListContainer.addView(row)
+            if (index < TranscriptionModels.options.lastIndex) {
+                modelListContainer.addView(View(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        resources.getDimensionPixelSize(R.dimen.onboarding_model_divider_height)
+                    )
+                    setBackgroundColor(resources.getColor(R.color.home_border_subtle, theme))
+                })
+            }
+        }
+    }
+
     private fun completeOnboarding() {
-        if (!isMicrophoneGranted()) {
+        if (!OnboardingRequirements.isMicrophoneGranted(this)) {
             Toast.makeText(this, R.string.ime_permission_denied, Toast.LENGTH_SHORT).show()
             step = Step.MICROPHONE
             renderStep()
             return
         }
-        if (!isKeyboardEnabled()) {
+        if (!OnboardingRequirements.isKeyboardEnabled(this)) {
             Toast.makeText(this, R.string.onboarding_keyboard_required, Toast.LENGTH_SHORT).show()
             return
         }
@@ -241,14 +323,6 @@ class OnboardingActivity : AppCompatActivity() {
         val code = Locale.getDefault().country.uppercase(Locale.US)
         if (code.length != 2) return null
         return if (countryOptions.any { it.code == code }) code else null
-    }
-
-    private fun isMicrophoneGranted(): Boolean =
-        ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
-
-    private fun isKeyboardEnabled(): Boolean {
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager ?: return false
-        return imm.enabledInputMethodList.any { it.packageName == packageName }
     }
 
     private suspend fun updateOnboardingStatus(
@@ -298,6 +372,31 @@ class OnboardingActivity : AppCompatActivity() {
         primaryButton.isEnabled = !loading
         secondaryButton.isEnabled = !loading
         countryRow.isEnabled = !loading
+        setModelCardEnabled(!loading)
         progress.visibility = if (loading) View.VISIBLE else View.GONE
+    }
+
+    private fun setModelCardEnabled(enabled: Boolean) {
+        for (index in 0 until modelListContainer.childCount) {
+            modelListContainer.getChildAt(index).isEnabled = enabled
+        }
+        modelCard.isEnabled = enabled
+    }
+
+    private fun parseStepExtra(rawStep: String?): Step {
+        return when (rawStep) {
+            STEP_MODEL -> Step.MODEL
+            STEP_MICROPHONE -> Step.MICROPHONE
+            STEP_KEYBOARD -> Step.KEYBOARD
+            else -> Step.COUNTRY
+        }
+    }
+
+    companion object {
+        const val EXTRA_START_STEP = "extra_start_step"
+        const val STEP_COUNTRY = "country"
+        const val STEP_MODEL = "model"
+        const val STEP_MICROPHONE = "microphone"
+        const val STEP_KEYBOARD = "keyboard"
     }
 }

@@ -29,11 +29,23 @@
         </activity>
 
         <activity
+            android:name=".auth.AuthHomeActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".auth.LoginEmailActivity"
             android:exported="false" />
 
         <activity
+            android:name=".auth.CreateAccountActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".auth.LoginOtpActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".auth.SetPasswordActivity"
             android:exported="false" />
 
         <activity

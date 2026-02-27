@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.InputFilter
 import android.view.View
-import android.widget.EditText
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +31,7 @@ class LoginOtpActivity : AppCompatActivity() {
     private lateinit var helperText: TextView
     private lateinit var progress: View
     private lateinit var email: String
+    private lateinit var flow: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,6 +43,7 @@ class LoginOtpActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login_otp)
 
         email = intent.getStringExtra(EXTRA_EMAIL).orEmpty()
+        flow = intent.getStringExtra(EXTRA_FLOW).orEmpty().ifBlank { FLOW_LOGIN }
         if (email.isBlank()) {
             finish()
             return
@@ -86,12 +88,20 @@ class LoginOtpActivity : AppCompatActivity() {
                 val payload = JSONObject()
                     .put("email", email)
                     .put("otp", otp)
-                    .put("deviceId", AuthStore.getOrCreateDeviceId(this@LoginOtpActivity))
-                    .toString()
+
+                if (flow == FLOW_LOGIN) {
+                    payload.put("deviceId", AuthStore.getOrCreateDeviceId(this@LoginOtpActivity))
+                }
+
+                val endpoint = if (flow == FLOW_SIGNUP) {
+                    "$baseUrl/auth/signup/verify-otp"
+                } else {
+                    "$baseUrl/auth/verify-otp"
+                }
 
                 val request = Request.Builder()
-                    .url("$baseUrl/auth/verify-otp")
-                    .post(payload.toRequestBody("application/json".toMediaType()))
+                    .url(endpoint)
+                    .post(payload.toString().toRequestBody("application/json".toMediaType()))
                     .build()
 
                 val response = withContext(Dispatchers.IO) {
@@ -100,7 +110,29 @@ class LoginOtpActivity : AppCompatActivity() {
 
                 val body = response.body?.string().orEmpty()
                 if (!response.isSuccessful) {
-                    throw IllegalStateException(body.ifBlank { "Verification failed" })
+                    AuthApiLogger.logHttpFailure(endpoint, response.code, body)
+                    val backendMessage = AuthApiLogger.parseBackendMessage(
+                        response.code,
+                        body,
+                        getString(R.string.auth_verify_failed)
+                    )
+                    helperText.text = backendMessage
+                    Toast.makeText(this@LoginOtpActivity, backendMessage, Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                if (flow == FLOW_SIGNUP) {
+                    val json = JSONObject(body)
+                    val ticket = json.optString("verificationTicket", "")
+                    if (ticket.isBlank()) {
+                        throw IllegalStateException("Missing verification ticket")
+                    }
+                    startActivity(
+                        Intent(this@LoginOtpActivity, SetPasswordActivity::class.java)
+                            .putExtra(SetPasswordActivity.EXTRA_VERIFICATION_TICKET, ticket)
+                    )
+                    finish()
+                    return@launch
                 }
 
                 val json = JSONObject(body)
@@ -114,6 +146,12 @@ class LoginOtpActivity : AppCompatActivity() {
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
             } catch (e: Exception) {
+                val endpoint = if (flow == FLOW_SIGNUP) {
+                    "$baseUrl/auth/signup/verify-otp"
+                } else {
+                    "$baseUrl/auth/verify-otp"
+                }
+                AuthApiLogger.logException(endpoint, e)
                 helperText.text = getString(R.string.auth_otp_helper)
                 Toast.makeText(
                     this@LoginOtpActivity,
@@ -143,8 +181,14 @@ class LoginOtpActivity : AppCompatActivity() {
                     .put("deviceId", AuthStore.getOrCreateDeviceId(this@LoginOtpActivity))
                     .toString()
 
+                val endpoint = if (flow == FLOW_SIGNUP) {
+                    "$baseUrl/auth/signup/request-otp"
+                } else {
+                    "$baseUrl/auth/request-otp"
+                }
+
                 val request = Request.Builder()
-                    .url("$baseUrl/auth/request-otp")
+                    .url(endpoint)
                     .post(payload.toRequestBody("application/json".toMediaType()))
                     .build()
 
@@ -153,11 +197,26 @@ class LoginOtpActivity : AppCompatActivity() {
                 }
 
                 if (!response.isSuccessful) {
-                    throw IllegalStateException("Failed to resend")
+                    val body = response.body?.string().orEmpty()
+                    AuthApiLogger.logHttpFailure(endpoint, response.code, body)
+                    val backendMessage = AuthApiLogger.parseBackendMessage(
+                        response.code,
+                        body,
+                        getString(R.string.auth_send_failed)
+                    )
+                    helperText.text = backendMessage
+                    Toast.makeText(this@LoginOtpActivity, backendMessage, Toast.LENGTH_LONG).show()
+                    return@launch
                 }
 
                 helperText.text = getString(R.string.auth_otp_sent_again)
             } catch (e: Exception) {
+                val endpoint = if (flow == FLOW_SIGNUP) {
+                    "$baseUrl/auth/signup/request-otp"
+                } else {
+                    "$baseUrl/auth/request-otp"
+                }
+                AuthApiLogger.logException(endpoint, e)
                 helperText.text = getString(R.string.auth_otp_helper)
                 Toast.makeText(
                     this@LoginOtpActivity,
@@ -178,5 +237,8 @@ class LoginOtpActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_EMAIL = "extra_email"
+        const val EXTRA_FLOW = "extra_flow"
+        const val FLOW_LOGIN = "login"
+        const val FLOW_SIGNUP = "signup"
     }
 }

@@ -23,12 +23,11 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 
-class LoginEmailActivity : AppCompatActivity() {
+class CreateAccountActivity : AppCompatActivity() {
     private val client = OkHttpClient()
     private lateinit var emailInput: EditText
-    private lateinit var passwordInput: EditText
-    private lateinit var loginButton: Button
-    private lateinit var switchToCreateButton: TextView
+    private lateinit var createButton: Button
+    private lateinit var switchToLoginButton: TextView
     private lateinit var helperText: TextView
     private lateinit var progress: View
 
@@ -40,35 +39,29 @@ class LoginEmailActivity : AppCompatActivity() {
             return
         }
 
-        setContentView(R.layout.activity_login_email)
+        setContentView(R.layout.activity_create_account)
 
-        emailInput = findViewById(R.id.emailInput)
-        passwordInput = findViewById(R.id.passwordInput)
-        loginButton = findViewById(R.id.loginButton)
-        switchToCreateButton = findViewById(R.id.goToCreateAccountButton)
-        helperText = findViewById(R.id.loginEmailHelper)
-        progress = findViewById(R.id.loginEmailProgress)
+        emailInput = findViewById(R.id.createAccountEmailInput)
+        createButton = findViewById(R.id.createAccountButton)
+        switchToLoginButton = findViewById(R.id.createAccountSwitchToLoginButton)
+        helperText = findViewById(R.id.createAccountHelper)
+        progress = findViewById(R.id.createAccountProgress)
 
-        loginButton.setOnClickListener {
-            loginWithPassword()
+        createButton.setOnClickListener {
+            startCreateFlow()
         }
 
-        switchToCreateButton.setOnClickListener {
-            startActivity(Intent(this, CreateAccountActivity::class.java))
+        switchToLoginButton.setOnClickListener {
+            startActivity(Intent(this, LoginEmailActivity::class.java))
             finish()
         }
     }
 
-    private fun loginWithPassword() {
+    private fun startCreateFlow() {
         val email = emailInput.text.toString().trim().lowercase()
-        val password = passwordInput.text.toString().trim()
 
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             Toast.makeText(this, R.string.auth_invalid_email, Toast.LENGTH_SHORT).show()
-            return
-        }
-        if (password.length < 8) {
-            Toast.makeText(this, R.string.auth_invalid_password, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -79,18 +72,17 @@ class LoginEmailActivity : AppCompatActivity() {
         }
 
         setLoading(true)
-        helperText.text = getString(R.string.auth_signing_in)
+        helperText.text = getString(R.string.auth_sending_code)
 
         lifecycleScope.launch {
             try {
                 val payload = JSONObject()
                     .put("email", email)
-                    .put("password", password)
-                    .put("deviceId", AuthStore.getOrCreateDeviceId(this@LoginEmailActivity))
+                    .put("deviceId", AuthStore.getOrCreateDeviceId(this@CreateAccountActivity))
                     .toString()
 
                 val request = Request.Builder()
-                    .url("$baseUrl/auth/login")
+                    .url("$baseUrl/auth/signup/request-otp")
                     .post(payload.toRequestBody("application/json".toMediaType()))
                     .build()
                 val endpoint = request.url.toString()
@@ -105,39 +97,25 @@ class LoginEmailActivity : AppCompatActivity() {
                     val backendMessage = AuthApiLogger.parseBackendMessage(
                         response.code,
                         body,
-                        getString(R.string.auth_login_failed)
+                        getString(R.string.auth_send_failed)
                     )
                     helperText.text = backendMessage
-                    Toast.makeText(this@LoginEmailActivity, backendMessage, Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@CreateAccountActivity, backendMessage, Toast.LENGTH_LONG).show()
                     return@launch
                 }
 
-                val json = JSONObject(body.ifBlank { "{}" })
-                if (json.optBoolean("requiresVerification", false)) {
-                    startActivity(
-                        Intent(this@LoginEmailActivity, LoginOtpActivity::class.java)
-                            .putExtra(LoginOtpActivity.EXTRA_EMAIL, email)
-                            .putExtra(LoginOtpActivity.EXTRA_FLOW, LoginOtpActivity.FLOW_LOGIN)
-                    )
-                    finish()
-                    return@launch
-                }
-
-                val accessToken = json.getString("accessToken")
-                val refreshToken = json.optString("refreshToken", "").ifBlank { null }
-                val expiresAt = json.getLong("expiresAt")
-                val verifiedEmail = json.optString("email", email).ifBlank { email }
-                AuthStore.saveSession(this@LoginEmailActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
-
-                val intent = Intent(this@LoginEmailActivity, AuthGateActivity::class.java)
-                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                startActivity(intent)
+                startActivity(
+                    Intent(this@CreateAccountActivity, LoginOtpActivity::class.java)
+                        .putExtra(LoginOtpActivity.EXTRA_EMAIL, email)
+                        .putExtra(LoginOtpActivity.EXTRA_FLOW, LoginOtpActivity.FLOW_SIGNUP)
+                )
+                finish()
             } catch (e: Exception) {
-                AuthApiLogger.logException("$baseUrl/auth/login", e)
-                helperText.text = getString(R.string.auth_login_helper)
+                AuthApiLogger.logException("$baseUrl/auth/signup/request-otp", e)
+                helperText.text = getString(R.string.auth_create_account_helper)
                 Toast.makeText(
-                    this@LoginEmailActivity,
-                    getString(R.string.auth_login_failed),
+                    this@CreateAccountActivity,
+                    getString(R.string.auth_send_failed),
                     Toast.LENGTH_SHORT
                 ).show()
             } finally {
@@ -147,8 +125,8 @@ class LoginEmailActivity : AppCompatActivity() {
     }
 
     private fun setLoading(loading: Boolean) {
-        loginButton.isEnabled = !loading
-        switchToCreateButton.isEnabled = !loading
+        createButton.isEnabled = !loading
+        switchToLoginButton.isEnabled = !loading
         progress.visibility = if (loading) View.VISIBLE else View.GONE
     }
 }
