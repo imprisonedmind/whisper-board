@@ -10,462 +10,655 @@
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="24dp"
-        android:paddingTop="32dp"
-        android:paddingEnd="24dp"
-        android:paddingBottom="36dp">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:background="@null"
-                android:contentDescription="@string/back"
-                android:src="@drawable/ic_back"
-                android:tint="@color/home_ink" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="@string/credit_balance_title"
-                android:textColor="@color/home_ink"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/rulesButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/credit_rules"
-                android:textColor="@color/home_ink_muted"
-                android:textSize="14sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_home_card_brand"
             android:orientation="vertical"
-            android:padding="16dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/credit_total_label"
-                android:textColor="@color/home_ink"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/totalCreditsValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="@string/credit_total_value"
-                android:textColor="@color/home_ink"
-                android:textSize="36sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/currencyRow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="@drawable/bg_home_card_brand"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="14dp">
-
-            <TextView
-                android:id="@+id/currencyFlag"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:layout_marginEnd="12dp"
-                android:gravity="center"
-                android:text="🇺🇸"
-                android:textSize="18sp" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/currency_label"
-                android:textColor="@color/home_ink"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/currencyCode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:text="USD"
-                android:textColor="@color/home_ink_muted"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/currencyName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
-                android:text="United States Dollar"
-                android:textColor="@color/home_ink_muted"
-                android:textSize="14sp" />
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_chevron_right"
-                android:tint="@color/home_ink_muted" />
-        </LinearLayout>
-
-        <GridLayout
-            android:id="@+id/creditGrid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:columnCount="3"
-            android:useDefaultMargins="true">
+            android:paddingStart="24dp"
+            android:paddingTop="32dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="36dp">
 
             <LinearLayout
-                android:id="@+id/option149"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:text="85"
-                        android:textColor="@color/home_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
+                <ImageButton
+                    android:id="@+id/backButton"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="@null"
+                    android:contentDescription="@string/back"
+                    android:src="@drawable/ic_back"
+                    android:tint="@color/home_ink" />
 
                 <TextView
-                    android:id="@+id/price150"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_150"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/credit_balance_title"
+                    android:textColor="@color/home_ink"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/rulesButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/credit_rules"
                     android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/option290"
-                android:layout_width="0dp"
+                android:id="@+id/currencyRow"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:text="170"
-                        android:textColor="@color/home_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/price300"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_300"
-                    android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/option439"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:text="500"
-                        android:textColor="@color/home_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/price500"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_500"
-                    android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/option1000"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
+                android:background="@drawable/bg_home_card_brand"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp">
+
+                <TextView
+                    android:id="@+id/currencyFlag"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_marginEnd="12dp"
+                    android:gravity="center"
+                    android:text="🇺🇸"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/currency_label"
+                    android:textColor="@color/home_ink"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/currencyCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:text="USD"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/currencyName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:text="United States Dollar"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="14sp" />
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_chevron_right"
+                    android:tint="@color/home_ink_muted" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:text="@string/credit_packs_label"
+                android:textColor="@color/home_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <GridLayout
+                android:id="@+id/creditGrid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:columnCount="3"
+                android:useDefaultMargins="true">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/option149"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_credit_option_brand"
+                    android:gravity="start"
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
                     <TextView
+                        android:id="@+id/save150"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/minutes150"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="200"
+                        android:textColor="@color/home_ink"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/price150"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_150"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/option290"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_credit_option_brand"
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/save300"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/minutes300"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="450"
+                        android:textColor="@color/home_ink"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/price300"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_300"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/popular300"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/credit_pack_popular_chip"
+                        android:textColor="@color/home_primary"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/option439"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:background="@drawable/bg_credit_option_brand"
+                    android:gravity="start"
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/save500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/minutes500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
                         android:text="1000"
                         android:textColor="@color/home_ink"
-                        android:textSize="16sp"
+                        android:textSize="17sp"
                         android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/price1000"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_1000"
-                    android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/option1500"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:id="@+id/price500"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:text="1500"
-                        android:textColor="@color/home_ink"
-                        android:textSize="16sp"
-                        android:textStyle="bold" />
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_500"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/price1500"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_1500"
-                    android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/option2500"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_columnWeight="1"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/bg_credit_option_brand"
-                android:gravity="start"
-                android:orientation="vertical"
-                android:padding="12dp">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:id="@+id/option1000"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:baselineAligned="false"
-                    android:gravity="start|center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:layout_marginEnd="6dp"
-                        android:src="@drawable/ic_sparkle"
-                        android:tint="@color/home_primary" />
+                    android:layout_columnWeight="1"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_credit_option_brand"
+                    android:gravity="start"
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
                     <TextView
+                        android:id="@+id/save1000"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:includeFontPadding="false"
-                        android:text="2500"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/minutes1000"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="2000"
                         android:textColor="@color/home_ink"
-                        android:textSize="16sp"
+                        android:textSize="17sp"
                         android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/price1000"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_1000"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
                 </LinearLayout>
 
-                <TextView
-                    android:id="@+id/price2500"
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:id="@+id/option1500"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_columnWeight="1"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_credit_option_brand"
                     android:gravity="start"
-                    android:includeFontPadding="false"
-                    android:paddingStart="22dp"
-                    android:text="@string/credit_price_2500"
-                    android:textColor="@color/home_ink_muted"
-                    android:textSize="12sp" />
-            </LinearLayout>
-        </GridLayout>
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
 
-        <Button
-            android:id="@+id/confirmPurchaseButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_settings_primary_button_states"
-            android:backgroundTint="@null"
-            android:minHeight="52dp"
-            style="@style/Widget.DictationIme.PrimaryButton"
-            android:text="@string/credit_buy_button_default"
-            android:textColor="@color/on_primary" />
+                    <TextView
+                        android:id="@+id/save1500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:gravity="center"
-            android:orientation="horizontal">
+                    <TextView
+                        android:id="@+id/minutes1500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="3200"
+                        android:textColor="@color/home_ink"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/price1500"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_1500"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/option2500"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_credit_option_brand"
+                    android:gravity="start"
+                    android:minHeight="112dp"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <TextView
+                        android:id="@+id/save2500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_credit_save_badge"
+                        android:paddingStart="8dp"
+                        android:paddingTop="3dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="3dp"
+                        android:textColor="@color/home_primary"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/minutes2500"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:text="5000"
+                        android:textColor="@color/home_ink"
+                        android:textSize="17sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/price2500"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="@string/credit_price_2500"
+                        android:textColor="@color/home_ink_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </GridLayout>
+
+            <Button
+                android:id="@+id/confirmPurchaseButton"
+                style="@style/Widget.DictationIme.PrimaryButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:background="@drawable/bg_settings_primary_button_states"
+                android:backgroundTint="@null"
+                android:minHeight="52dp"
+                android:text="@string/credit_buy_button_default"
+                android:textColor="@color/on_primary" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/credit_footer_links"
+                android:layout_marginTop="18dp"
+                android:text="@string/monthly_subscription_label"
+                android:textColor="@color/home_ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/monthlyCard1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_monthly_offer_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/monthlyBadge1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_credit_save_badge"
+                    android:paddingStart="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/monthly_subscription_badge_default"
+                    android:textColor="@color/home_primary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlyTitle1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/monthly_subscription_title"
+                    android:textColor="@color/home_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlySubtitle1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/monthly_subscription_subtitle_default"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/monthlyPrice1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/monthly_subscription_price_default"
+                    android:textColor="@color/home_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/monthlyButton1"
+                    style="@style/Widget.DictationIme.PrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:backgroundTint="@null"
+                    android:minHeight="48dp"
+                    android:text="@string/monthly_subscription_button"
+                    android:textColor="@color/home_ink" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/monthlyCard2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_monthly_offer_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/monthlyBadge2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_credit_save_badge"
+                    android:paddingStart="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/monthly_subscription_badge_default"
+                    android:textColor="@color/home_primary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlyTitle2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/monthly_subscription_title"
+                    android:textColor="@color/home_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlySubtitle2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/monthly_subscription_subtitle_default"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/monthlyPrice2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/monthly_subscription_price_default"
+                    android:textColor="@color/home_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/monthlyButton2"
+                    style="@style/Widget.DictationIme.PrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:backgroundTint="@null"
+                    android:minHeight="48dp"
+                    android:text="@string/monthly_subscription_button"
+                    android:textColor="@color/home_ink" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/monthlyCard3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_monthly_offer_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/monthlyBadge3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_credit_save_badge"
+                    android:paddingStart="8dp"
+                    android:paddingTop="3dp"
+                    android:paddingEnd="8dp"
+                    android:paddingBottom="3dp"
+                    android:text="@string/monthly_subscription_badge_default"
+                    android:textColor="@color/home_primary"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlyTitle3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="@string/monthly_subscription_title"
+                    android:textColor="@color/home_ink"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/monthlySubtitle3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="@string/monthly_subscription_subtitle_default"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/monthlyPrice3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/monthly_subscription_price_default"
+                    android:textColor="@color/home_ink"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/monthlyButton3"
+                    style="@style/Widget.DictationIme.PrimaryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_outline_button"
+                    android:backgroundTint="@null"
+                    android:minHeight="48dp"
+                    android:text="@string/monthly_subscription_button"
+                    android:textColor="@color/home_ink" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/credit_footer_links"
+                    android:textColor="@color/home_ink_muted"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/credit_disclaimer"
                 android:textColor="@color/home_ink_muted"
                 android:textSize="12sp" />
+
         </LinearLayout>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/credit_disclaimer"
-            android:textColor="@color/home_ink_muted"
-            android:textSize="12sp" />
-
-    </LinearLayout>
     </ScrollView>
 
     <FrameLayout

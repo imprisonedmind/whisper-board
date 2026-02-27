@@ -110,7 +110,7 @@ class LoginOtpActivity : AppCompatActivity() {
                 val verifiedEmail = json.optString("email", email).ifBlank { email }
                 AuthStore.saveSession(this@LoginOtpActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
 
-                val intent = Intent(this@LoginOtpActivity, MainActivity::class.java)
+                val intent = Intent(this@LoginOtpActivity, AuthGateActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
             } catch (e: Exception) {

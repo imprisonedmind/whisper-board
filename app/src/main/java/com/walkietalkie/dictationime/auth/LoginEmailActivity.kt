@@ -174,11 +174,11 @@ class LoginEmailActivity : AppCompatActivity() {
                 val refreshToken = json.optString("refreshToken", "").ifBlank { null }
                 val expiresAt = json.getLong("expiresAt")
                 val verifiedEmail = json.optString("email", "").ifBlank {
-                    "playstore-reviewer@walkietalkie.app"
+                    "playstore-reviewer@yapboard.app"
                 }
                 AuthStore.saveSession(this@LoginEmailActivity, accessToken, refreshToken, expiresAt, verifiedEmail)
 
-                val intent = Intent(this@LoginEmailActivity, MainActivity::class.java)
+                val intent = Intent(this@LoginEmailActivity, AuthGateActivity::class.java)
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 startActivity(intent)
             } catch (e: Exception) {
